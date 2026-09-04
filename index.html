@@ -592,6 +592,27 @@ canvas{max-width:100%;}
   </main>
 </div>
 
+<!-- =========================================================================
+     SUPABASE CONFIGURATION
+     Load the Supabase JS client from the CDN, then initialize it below.
+     Paste your own Project URL and Publishable (anon) Key into the two
+     placeholder strings. Never put your Supabase secret / service_role
+     key in this file — it is client-side code, visible to anyone who
+     views the page source.
+     ========================================================================= -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* =========================================================================
+   SUPABASE CONFIGURATION — fill in your own values below
+   ========================================================================= */
+const SUPABASE_URL = 'https://wrciexrvqrgckaqlgwga.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_CPQrm079aIgM1u0dKUyo_g_oNd7B0qE';
+const supabaseClient = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_PUBLISHABLE_KEY
+);
+</script>
+
 <script>
 /* =========================================================================
    STORAGE POLYFILL — window.storage is a Claude-artifacts-only API.
