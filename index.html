@@ -329,12 +329,76 @@ canvas{max-width:100%;}
 .saved-drill .sd-name{font-weight:600;font-size:13.5px;}
 .saved-drill .sd-desc{font-size:11.5px;color:var(--text-faint);margin-top:2px;}
 .saved-drill .sd-btns{display:flex;gap:6px;}
+
+/* ---------- auth ---------- */
+.auth-box{
+  margin:6px 4px 14px 4px;padding:10px 12px;border-radius:8px;background:var(--surface2);
+  border:1px solid var(--border);font-size:12px;color:var(--text-dim);
+}
+.auth-box .auth-user{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.auth-box .auth-avatar{
+  width:22px;height:22px;border-radius:50%;background:var(--accent-dim);color:var(--accent);
+  display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;
+  font-weight:700;flex-shrink:0;
+}
+.auth-box .auth-email{font-size:11.5px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.auth-box .auth-btns{display:flex;gap:6px;}
+.auth-box .auth-btns .btn{flex:1;padding:7px 8px;font-size:12px;}
+.auth-note{font-size:10.5px;color:var(--text-faint);margin-top:6px;line-height:1.4;}
+
+.modal-overlay{
+  display:none;position:fixed;inset:0;background:rgba(6,7,11,.72);z-index:200;
+  align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(2px);
+}
+.modal-overlay.open{display:flex;}
+.modal-box{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  padding:26px 26px 22px 26px;width:100%;max-width:360px;position:relative;
+}
+.modal-box h2{font-family:var(--display);font-size:18px;margin:0 0 4px 0;}
+.modal-box .modal-sub{font-size:12.5px;color:var(--text-dim);margin:0 0 18px 0;}
+.modal-close{
+  all:unset;position:absolute;top:14px;right:16px;cursor:pointer;color:var(--text-faint);
+  font-size:16px;line-height:1;padding:4px;
+}
+.modal-close:hover{color:var(--text);}
+.auth-field{margin-bottom:12px;}
+.auth-field label{display:block;font-size:11.5px;color:var(--text-dim);margin-bottom:5px;}
+.auth-field input{
+  width:100%;padding:9px 11px;border-radius:7px;border:1px solid var(--border);
+  background:var(--surface3);color:var(--text);font-size:13.5px;font-family:var(--sans);
+}
+.auth-field input:focus{outline:none;border-color:var(--accent-dim);}
+.auth-error{
+  background:var(--bad-dim);border:1px solid var(--bad);color:var(--bad);border-radius:7px;
+  padding:8px 10px;font-size:12px;margin-bottom:12px;display:none;
+}
+.auth-error.show{display:block;}
+.auth-success{
+  background:var(--good-dim);border:1px solid var(--good);color:var(--good);border-radius:7px;
+  padding:8px 10px;font-size:12px;margin-bottom:12px;display:none;
+}
+.auth-success.show{display:block;}
+.modal-submit{width:100%;margin-top:4px;}
+.modal-switch{margin-top:16px;font-size:12.5px;color:var(--text-dim);text-align:center;}
+.modal-switch button{all:unset;cursor:pointer;color:var(--accent);font-weight:600;}
+
+/* ---------- save progress (post-test) ---------- */
+.save-progress-box{
+  margin-top:14px;padding:14px 16px;border-radius:10px;background:var(--surface2);
+  border:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;
+}
+.save-progress-box .sp-text{font-size:12.5px;color:var(--text-dim);}
+.save-progress-box .sp-text b{color:var(--text);}
+.save-progress-box .sp-actions{display:flex;gap:8px;flex-wrap:wrap;}
+.save-progress-box .sp-status{font-size:11.5px;color:var(--good);margin-left:2px;}
 </style>
 </head>
 <body>
 <div class="app">
   <aside class="sidebar">
     <div class="brand"><span class="dot"></span>Finger Training Master</div>
+    <div class="auth-box" id="authBox"><!-- filled by renderAuthBox() --></div>
     <div class="streak-chip" id="streakChip">🔥 <b>0</b> day streak</div>
     <nav class="nav" id="nav">
       <button data-page="dashboard" class="active"><span class="ico">01</span>Dashboard</button>
@@ -593,6 +657,34 @@ canvas{max-width:100%;}
 </div>
 
 <!-- =========================================================================
+     AUTH MODAL (Sign up / Log in) — shared by the sidebar auth box and the
+     post-test "Save your progress" prompt. Plain HTML/CSS/JS, no <form> tag
+     needed since we handle submission via a button click + Enter key.
+     ========================================================================= -->
+<div class="modal-overlay" id="authModalOverlay">
+  <div class="modal-box">
+    <button class="modal-close" id="authModalClose" aria-label="Close">✕</button>
+    <h2 id="authModalTitle">Log in</h2>
+    <p class="modal-sub" id="authModalSub">Log in to sync your typing progress across devices.</p>
+    <div class="auth-error" id="authModalError"></div>
+    <div class="auth-success" id="authModalSuccess"></div>
+    <div class="auth-field">
+      <label for="authEmail">Email</label>
+      <input type="email" id="authEmail" autocomplete="email" placeholder="you@example.com">
+    </div>
+    <div class="auth-field">
+      <label for="authPassword">Password</label>
+      <input type="password" id="authPassword" autocomplete="current-password" placeholder="••••••••">
+    </div>
+    <button class="btn modal-submit" id="authModalSubmit">Log in</button>
+    <div class="modal-switch">
+      <span id="authModalSwitchText">Don't have an account?</span>
+      <button id="authModalSwitchBtn">Sign up</button>
+    </div>
+  </div>
+</div>
+
+<!-- =========================================================================
      SUPABASE CONFIGURATION
      Load the Supabase JS client from the CDN, then initialize it below.
      Paste your own Project URL and Publishable (anon) Key into the two
@@ -611,6 +703,301 @@ const supabaseClient = window.supabase.createClient(
   SUPABASE_URL,
   SUPABASE_PUBLISHABLE_KEY
 );
+</script>
+
+<script>
+/* =========================================================================
+   AUTH — Supabase email/password sign up, log in, log out, session detection.
+
+   Design goals (per spec):
+   - The entire typing app must stay fully usable with NO account at all.
+     Nothing in this file gates any page, mode, or feature behind login.
+   - Auth only adds two things on top of the existing local-storage app:
+       1) a sidebar box showing the logged-in user's email + a logout button
+          (or Sign up / Log in buttons when logged out), and
+       2) an optional "Save your progress" cloud-sync action after a test.
+   - Local storage (window.storage / localStorage, see STORAGE LAYER below)
+     remains the system of record for anonymous users and keeps working
+     exactly as before, untouched.
+   ========================================================================= */
+
+let currentUser = null; // Supabase auth user object, or null when logged out
+
+/* ---- sidebar auth box ---- */
+function renderAuthBox(){
+  const box = document.getElementById('authBox');
+  if(!box) return;
+  if(currentUser){
+    const email = currentUser.email || '';
+    const initial = email.charAt(0).toUpperCase() || '?';
+    box.innerHTML = `
+      <div class="auth-user">
+        <div class="auth-avatar">${initial}</div>
+        <div class="auth-email" title="${email}">${email}</div>
+      </div>
+      <div class="auth-btns">
+        <button class="btn ghost" id="logoutBtn">Log out</button>
+      </div>
+    `;
+    document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+  } else {
+    box.innerHTML = `
+      <div style="margin-bottom:8px;">Not logged in. Progress is saved on this device only.</div>
+      <div class="auth-btns">
+        <button class="btn ghost" id="sidebarLoginBtn">Log in</button>
+        <button class="btn" id="sidebarSignupBtn">Sign up</button>
+      </div>
+    `;
+    document.getElementById('sidebarLoginBtn').addEventListener('click', ()=> openAuthModal('login'));
+    document.getElementById('sidebarSignupBtn').addEventListener('click', ()=> openAuthModal('signup'));
+  }
+}
+
+/* ---- auth modal ---- */
+let authModalMode = 'login'; // 'login' | 'signup'
+function openAuthModal(mode){
+  authModalMode = mode;
+  applyAuthModalMode();
+  document.getElementById('authEmail').value = '';
+  document.getElementById('authPassword').value = '';
+  hideAuthMessages();
+  document.getElementById('authModalOverlay').classList.add('open');
+  setTimeout(()=> document.getElementById('authEmail').focus(), 30);
+}
+function closeAuthModal(){
+  document.getElementById('authModalOverlay').classList.remove('open');
+}
+function applyAuthModalMode(){
+  const isLogin = authModalMode === 'login';
+  document.getElementById('authModalTitle').textContent = isLogin ? 'Log in' : 'Sign up';
+  document.getElementById('authModalSub').textContent = isLogin
+    ? 'Log in to sync your typing progress across devices.'
+    : 'Create a free account to save your typing progress across devices.';
+  document.getElementById('authModalSubmit').textContent = isLogin ? 'Log in' : 'Sign up';
+  document.getElementById('authPassword').autocomplete = isLogin ? 'current-password' : 'new-password';
+  document.getElementById('authModalSwitchText').textContent = isLogin ? "Don't have an account?" : 'Already have an account?';
+  document.getElementById('authModalSwitchBtn').textContent = isLogin ? 'Sign up' : 'Log in';
+}
+function hideAuthMessages(){
+  const err = document.getElementById('authModalError');
+  const ok = document.getElementById('authModalSuccess');
+  err.classList.remove('show'); err.textContent = '';
+  ok.classList.remove('show'); ok.textContent = '';
+}
+function showAuthError(msg){
+  const err = document.getElementById('authModalError');
+  err.textContent = msg;
+  err.classList.add('show');
+  document.getElementById('authModalSuccess').classList.remove('show');
+}
+function showAuthSuccess(msg){
+  const ok = document.getElementById('authModalSuccess');
+  ok.textContent = msg;
+  ok.classList.add('show');
+  document.getElementById('authModalError').classList.remove('show');
+}
+
+async function handleAuthSubmit(){
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPassword').value;
+  hideAuthMessages();
+  if(!email || !password){ showAuthError('Please enter both email and password.'); return; }
+  if(password.length < 6){ showAuthError('Password must be at least 6 characters.'); return; }
+  const submitBtn = document.getElementById('authModalSubmit');
+  submitBtn.disabled = true;
+  try{
+    if(authModalMode === 'signup'){
+      const { data, error } = await supabaseClient.auth.signUp({ email, password });
+      if(error) throw error;
+      if(data && data.user && !data.session){
+        // email confirmation required by the Supabase project settings
+        showAuthSuccess('Account created. Check your email to confirm, then log in.');
+      } else {
+        showAuthSuccess('Account created and logged in.');
+        setTimeout(closeAuthModal, 700);
+      }
+    } else {
+      const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+      if(error) throw error;
+      showAuthSuccess('Logged in.');
+      setTimeout(closeAuthModal, 400);
+    }
+    // currentUser + UI refresh happens via the onAuthStateChange listener below,
+    // but refresh proactively too in case the listener is slow to fire.
+    await refreshCurrentUser();
+  } catch(e){
+    showAuthError(e && e.message ? e.message : 'Something went wrong. Please try again.');
+  } finally {
+    submitBtn.disabled = false;
+  }
+}
+
+async function handleLogout(){
+  try{ await supabaseClient.auth.signOut(); }
+  catch(e){ console.warn('logout error', e); }
+  currentUser = null;
+  renderAuthBox();
+  // any "Save your progress" boxes already on screen (e.g. from this session's
+  // completed tests) should reflect logged-out state if the user is still on
+  // the results view.
+  document.querySelectorAll('.save-progress-box').forEach(refreshSaveProgressBoxDom);
+}
+
+async function refreshCurrentUser(){
+  try{
+    const { data, error } = await supabaseClient.auth.getUser();
+    if(error) throw error;
+    currentUser = (data && data.user) || null;
+  } catch(e){
+    currentUser = null;
+  }
+  renderAuthBox();
+}
+
+function initAuthUI(){
+  document.getElementById('authModalClose').addEventListener('click', closeAuthModal);
+  document.getElementById('authModalOverlay').addEventListener('click', (e)=>{
+    if(e.target.id === 'authModalOverlay') closeAuthModal();
+  });
+  document.getElementById('authModalSubmit').addEventListener('click', handleAuthSubmit);
+  document.getElementById('authPassword').addEventListener('keydown', (e)=>{ if(e.key==='Enter') handleAuthSubmit(); });
+  document.getElementById('authEmail').addEventListener('keydown', (e)=>{ if(e.key==='Enter') handleAuthSubmit(); });
+  document.getElementById('authModalSwitchBtn').addEventListener('click', ()=>{
+    authModalMode = authModalMode === 'login' ? 'signup' : 'login';
+    applyAuthModalMode();
+    hideAuthMessages();
+  });
+  // keep the sidebar (and any open "Save your progress" boxes) in sync with
+  // auth state changes from any tab/flow: login, logout, token refresh, etc.
+  supabaseClient.auth.onAuthStateChange((_event, session)=>{
+    currentUser = (session && session.user) || null;
+    renderAuthBox();
+    document.querySelectorAll('.save-progress-box').forEach(refreshSaveProgressBoxDom);
+  });
+}
+
+/* =========================================================================
+   CLOUD SYNC — "Save your progress" (spec §7/§14)
+
+   This prepares the app so a logged-in user's sessions CAN be synced to
+   Supabase, without requiring it: anonymous users keep using the existing
+   local-storage system exactly as before (spec §6/§13), and logged-in users
+   get an extra button to push a completed test result to their account.
+
+   Expected Supabase schema (create this table in your project when ready):
+
+     create table public.typing_sessions (
+       id text primary key,
+       user_id uuid references auth.users(id) not null,
+       mode text,
+       wpm int,
+       gross_wpm int,
+       accuracy numeric,
+       correct_characters int,
+       incorrect_characters int,
+       total_characters int,
+       duration_sec int,
+       high_court boolean,
+       legal_word_mistakes int,
+       punctuation_mistakes int,
+       number_date_mistakes int,
+       created_at timestamptz default now()
+     );
+     alter table public.typing_sessions enable row level security;
+     create policy "individuals can manage their own sessions"
+       on public.typing_sessions for all
+       using (auth.uid() = user_id)
+       with check (auth.uid() = user_id);
+
+   Until that table exists, syncSessionToCloud() simply fails gracefully and
+   tells the user cloud sync isn't set up yet — it never blocks or breaks the
+   local save, which has already happened via recordSession()/save() by the
+   time this box is shown.
+   ========================================================================= */
+const CLOUD_TABLE = 'typing_sessions';
+
+function renderSaveProgressBox(slot, sessionRecord){
+  if(!slot) return;
+  // Multiple result panels can be on screen at once (auto-advance stacks a new
+  // stage+result below the previous one), so this box is looked up and wired
+  // via direct element/closure references only — never by a shared id.
+  slot.outerHTML = `<div class="save-progress-box" data-session-id="${sessionRecord.id}"></div>`;
+  const newBox = document.querySelector(`.save-progress-box[data-session-id="${sessionRecord.id}"]`);
+  if(!newBox) return;
+  newBox._sessionRecord = sessionRecord;
+  refreshSaveProgressBoxDom(newBox);
+}
+
+function refreshSaveProgressBoxDom(box){
+  if(!box || !box.isConnected) return;
+  const sessionRecord = box._sessionRecord;
+  if(!sessionRecord) return;
+  if(currentUser){
+    const alreadySynced = !!sessionRecord._synced;
+    box.innerHTML = `
+      <div class="sp-text">${alreadySynced ? '☁ <b>Saved to your account.</b>' : 'This result is saved on this device. <b>Save it to your account</b> to keep it across devices too.'}</div>
+      <div class="sp-actions">
+        ${alreadySynced ? '' : `<button class="btn sp-save-btn">Save your progress</button>`}
+      </div>
+    `;
+    if(!alreadySynced){
+      box.querySelector('.sp-save-btn').addEventListener('click', ()=> doSaveProgress(box));
+    }
+  } else {
+    box.innerHTML = `
+      <div class="sp-text">This result is saved on this device. <b>Log in or sign up</b> to also save your progress to your account.</div>
+      <div class="sp-actions">
+        <button class="btn ghost sp-login-btn">Log in</button>
+        <button class="btn sp-signup-btn">Sign up</button>
+      </div>
+    `;
+    box.querySelector('.sp-login-btn').addEventListener('click', ()=> openAuthModal('login'));
+    box.querySelector('.sp-signup-btn').addEventListener('click', ()=> openAuthModal('signup'));
+  }
+}
+
+async function doSaveProgress(box){
+  const sessionRecord = box._sessionRecord;
+  const btn = box.querySelector('.sp-save-btn');
+  if(btn){ btn.disabled = true; btn.textContent = 'Saving…'; }
+  const ok = await syncSessionToCloud(sessionRecord);
+  if(ok){
+    sessionRecord._synced = true;
+    refreshSaveProgressBoxDom(box);
+  } else if(btn){
+    btn.disabled = false;
+    btn.textContent = 'Save your progress';
+  }
+}
+
+async function syncSessionToCloud(sessionRecord){
+  if(!currentUser){ return false; }
+  try{
+    const { error } = await supabaseClient.from(CLOUD_TABLE).insert({
+      id: sessionRecord.id,
+      user_id: currentUser.id,
+      mode: sessionRecord.mode,
+      wpm: sessionRecord.wpm,
+      gross_wpm: sessionRecord.grossWpm,
+      accuracy: sessionRecord.accuracy,
+      correct_characters: sessionRecord.correctCharacters,
+      incorrect_characters: sessionRecord.incorrectCharacters,
+      total_characters: sessionRecord.totalCharacters,
+      duration_sec: sessionRecord.durationSec,
+      high_court: sessionRecord.highCourt,
+      legal_word_mistakes: sessionRecord.legalWordMistakes,
+      punctuation_mistakes: sessionRecord.punctuationMistakes,
+      number_date_mistakes: sessionRecord.numberDateMistakes,
+      created_at: sessionRecord.createdAt
+    });
+    if(error) throw error;
+    return true;
+  } catch(e){
+    console.warn('Cloud sync failed (is the typing_sessions table set up in Supabase?):', e);
+    alert("Couldn't save to your account yet. Make sure the typing_sessions table has been created in your Supabase project (see comments in the code), then try again.");
+    return false;
+  }
+}
 </script>
 
 <script>
@@ -1712,8 +2099,12 @@ function renderStage(container, text, mode, opts){
     onComplete: (result)=>{
       stopTicker();
       input.disabled = true;
-      showResult(resultWrap, result, mode, opts);
-      recordSession(mode, result, opts);
+      // build the session record up front so both the result panel (which offers
+      // "Save your progress" cloud sync) and recordSession() (which persists it
+      // locally) reference the exact same session object/id.
+      const sessionRecord = buildSessionRecord(mode, result);
+      showResult(resultWrap, result, mode, opts, sessionRecord);
+      recordSession(mode, result, opts, sessionRecord);
       if(opts.contentGenerator && opts.autoAdvance!==false){
         const nextWrap = document.createElement('div');
         nextWrap.style.marginTop = '22px';
@@ -1810,7 +2201,7 @@ function renderStage(container, text, mode, opts){
   return engine;
 }
 
-function showResult(container, result, mode, opts){
+function showResult(container, result, mode, opts, sessionRecord){
   const prevAvg = averageWpm();
   const endMsg = pickMotivationEnd(result);
   container.innerHTML = `
@@ -1834,8 +2225,14 @@ function showResult(container, result, mode, opts){
           <li>Words with mistakes <b>${result.wordMistakes.length}</b></li>
         </ul>
       </div>
+      <div id="saveProgressSlot"></div>
     </div>
   `;
+  // "Save your progress" — this result is already saved to this browser's local
+  // storage automatically (see recordSession/save()). This box additionally offers
+  // to sync it to the user's Supabase account so it's available on other devices.
+  // Local-only (anonymous) use is fully unaffected either way — spec §6/§13.
+  if(sessionRecord) renderSaveProgressBox(container.querySelector('#saveProgressSlot'), sessionRecord);
 }
 
 /* =========================================================================
@@ -1847,8 +2244,8 @@ function averageWpm(){
   return Math.round(sum/DB.sessions.length);
 }
 
-async function recordSession(mode, result, opts){
-  const session = {
+function buildSessionRecord(mode, result){
+  return {
     id: 's'+Date.now(), mode, wpm: result.wpm, grossWpm: result.grossWpm, accuracy: result.accuracy,
     correctCharacters: result.correctCharacters, incorrectCharacters: result.incorrectCharacters,
     totalCharacters: result.totalCharacters, durationSec: result.durationSec, createdAt: new Date().toISOString(),
@@ -1857,6 +2254,12 @@ async function recordSession(mode, result, opts){
     punctuationMistakes: String(mode).startsWith('HC') ? result.mistakes.filter(m=>/[,:;.'"()\[\]]/.test(m.expected||'')).length : 0,
     numberDateMistakes: String(mode).startsWith('HC') ? result.mistakes.filter(m=>/\d/.test(m.expected||'')).length : 0
   };
+}
+async function recordSession(mode, result, opts, sessionRecord){
+  // sessionRecord may already have been built by the caller (renderStage's onComplete)
+  // so the exact same session id is used for the "Save your progress" cloud-sync box —
+  // fall back to building it here if this is ever called without one.
+  const session = sessionRecord || buildSessionRecord(mode, result);
   DB.sessions.push(session);
   await save('sessions');
 
@@ -2729,6 +3132,12 @@ function initSettingsUI(){
   initSettingsUI();
   renderModeGrid();
   renderDashboard();
+  // Auth is initialized last and independently of the local data load above —
+  // detecting the logged-in user (if any) never blocks or alters the rest of
+  // the app, which is fully usable with zero network/account state.
+  renderAuthBox();
+  initAuthUI();
+  refreshCurrentUser();
 })();
 </script>
 </body>
