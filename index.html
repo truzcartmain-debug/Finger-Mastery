@@ -345,6 +345,7 @@ canvas{max-width:100%;}
 .auth-box .auth-btns{display:flex;gap:6px;}
 .auth-box .auth-btns .btn{flex:1;padding:7px 8px;font-size:12px;}
 .auth-note{font-size:10.5px;color:var(--text-faint);margin-top:6px;line-height:1.4;}
+.link-btn{all:unset;cursor:pointer;color:var(--accent);text-decoration:underline;font-size:inherit;}
 
 .modal-overlay{
   display:none;position:fixed;inset:0;background:rgba(6,7,11,.72);z-index:200;
@@ -723,6 +724,16 @@ const supabaseClient = window.supabase.createClient(
 
 let currentUser = null; // Supabase auth user object, or null when logged out
 
+/* ---- account-switch bookkeeping (spec §3, §9) ----
+   lastProcessedUserId tracks which account's data is currently loaded into DB,
+   so token-refresh events (same user) don't trigger pointless reloads, while an
+   actual login/logout/account-switch always does. cloudLoadGeneration is bumped
+   on every account change so an in-flight fetch from a previous account/anon
+   state can detect it's stale and discard its result instead of applying it. */
+let lastProcessedUserId; // undefined until the first auth check completes
+let cloudLoadGeneration = 0;
+let accountSyncStatus = { state:'idle', count:0 }; // 'idle' | 'loading' | 'loaded' | 'error'
+
 /* ---- sidebar auth box ---- */
 function renderAuthBox(){
   const box = document.getElementById('authBox');
@@ -730,6 +741,14 @@ function renderAuthBox(){
   if(currentUser){
     const email = currentUser.email || '';
     const initial = email.charAt(0).toUpperCase() || '?';
+    let statusLine = '';
+    if(accountSyncStatus.state === 'loading'){
+      statusLine = `<div class="auth-note">Loading your saved progress…</div>`;
+    } else if(accountSyncStatus.state === 'error'){
+      statusLine = `<div class="auth-note" style="color:var(--bad);">Couldn't load your cloud progress. <button class="link-btn" id="retryCloudLoadBtn">Retry</button></div>`;
+    } else if(accountSyncStatus.state === 'loaded'){
+      statusLine = `<div class="auth-note">☁ ${accountSyncStatus.count} session${accountSyncStatus.count===1?'':'s'} synced from your account.</div>`;
+    }
     box.innerHTML = `
       <div class="auth-user">
         <div class="auth-avatar">${initial}</div>
@@ -738,8 +757,11 @@ function renderAuthBox(){
       <div class="auth-btns">
         <button class="btn ghost" id="logoutBtn">Log out</button>
       </div>
+      ${statusLine}
     `;
     document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+    const retryBtn = document.getElementById('retryCloudLoadBtn');
+    if(retryBtn) retryBtn.addEventListener('click', loadCloudSessionsForCurrentUser);
   } else {
     box.innerHTML = `
       <div style="margin-bottom:8px;">Not logged in. Progress is saved on this device only.</div>
@@ -822,8 +844,8 @@ async function handleAuthSubmit(){
       showAuthSuccess('Logged in.');
       setTimeout(closeAuthModal, 400);
     }
-    // currentUser + UI refresh happens via the onAuthStateChange listener below,
-    // but refresh proactively too in case the listener is slow to fire.
+    // currentUser + cloud-progress load happen via the onAuthStateChange listener
+    // below, but refresh proactively too in case the listener is slow to fire.
     await refreshCurrentUser();
   } catch(e){
     showAuthError(e && e.message ? e.message : 'Something went wrong. Please try again.');
@@ -835,23 +857,76 @@ async function handleAuthSubmit(){
 async function handleLogout(){
   try{ await supabaseClient.auth.signOut(); }
   catch(e){ console.warn('logout error', e); }
-  currentUser = null;
-  renderAuthBox();
-  // any "Save your progress" boxes already on screen (e.g. from this session's
-  // completed tests) should reflect logged-out state if the user is still on
-  // the results view.
-  document.querySelectorAll('.save-progress-box').forEach(refreshSaveProgressBoxDom);
+  // applyAuthUser(null) does the actual work: clears account progress from
+  // memory and rebuilds this browser's anonymous progress from local storage
+  // (which account mode never wrote to — see the save() guard below), then
+  // refreshes every progress-driven part of the UI, including any open
+  // "Save your progress" boxes.
+  await applyAuthUser(null);
 }
 
 async function refreshCurrentUser(){
   try{
     const { data, error } = await supabaseClient.auth.getUser();
     if(error) throw error;
-    currentUser = (data && data.user) || null;
+    await applyAuthUser((data && data.user) || null);
   } catch(e){
-    currentUser = null;
+    await applyAuthUser(null);
   }
+}
+
+/* ---- single funnel for every place currentUser can change (spec §8/§9) ----
+   refreshCurrentUser() (boot + right after login/signup) and the
+   onAuthStateChange listener (login/logout/token-refresh from anywhere) both
+   route through here, so there is exactly one place that decides whether an
+   account actually changed and exactly one place that triggers a cloud load
+   or an anonymous-data restore. */
+async function applyAuthUser(user){
+  currentUser = user || null;
   renderAuthBox();
+  document.querySelectorAll('.save-progress-box').forEach(refreshSaveProgressBoxDom);
+
+  const newId = currentUser ? currentUser.id : null;
+  const previousId = lastProcessedUserId; // undefined only on the very first check this page load
+  if(newId === previousId) return; // same account as already loaded (e.g. token refresh) — nothing to do
+  lastProcessedUserId = newId;
+  cloudLoadGeneration++; // invalidates any fetch still in flight for the previous state
+
+  if(currentUser){
+    // Switching INTO an account. Clear whatever session-derived progress is
+    // currently in memory (this device's anonymous data, or a previous
+    // account's) *immediately*, before the network request even starts, so
+    // nobody's numbers are ever shown — even briefly — under the wrong name.
+    // (spec §3: never mix anonymous/other-account data into this account.)
+    DB.sessions = [];
+    DB.mistakeWords = {};
+    DB.weakKeys = {};
+    DB.streakData = { count:0, best:0, last:null };
+    DB.achievementsUnlocked = [];
+    DB.xp = 0;
+    accountSyncStatus = { state:'loading', count:0 };
+    renderAuthBox();
+    renderAllProgressUI();
+    await loadCloudSessionsForCurrentUser();
+  } else if(previousId){
+    // Logged out of a real account (previousId was a user id, not undefined/
+    // null). Never leave that account's data on screen — rebuild this
+    // browser's anonymous progress straight from local storage, which
+    // account mode never touched (save() above skips progress keys while
+    // currentUser is set), so it's exactly as this device left it.
+    accountSyncStatus = { state:'idle', count:0 };
+    try{
+      await loadAll();
+    } catch(e){
+      console.warn('Failed to restore local anonymous progress after logout:', e);
+    }
+    renderAllProgressUI();
+  } else {
+    // Still anonymous (previousId was null, or this is the very first check
+    // on page load and boot() already loaded this browser's local data) —
+    // nothing to clear or reload.
+    accountSyncStatus = { state:'idle', count:0 };
+  }
 }
 
 function initAuthUI(){
@@ -869,22 +944,25 @@ function initAuthUI(){
   });
   // keep the sidebar (and any open "Save your progress" boxes) in sync with
   // auth state changes from any tab/flow: login, logout, token refresh, etc.
+  // Routed through applyAuthUser() so this can never race with the boot-time
+  // refreshCurrentUser() call — both funnel through the same account-change
+  // bookkeeping (lastProcessedUserId / cloudLoadGeneration).
   supabaseClient.auth.onAuthStateChange((_event, session)=>{
-    currentUser = (session && session.user) || null;
-    renderAuthBox();
-    document.querySelectorAll('.save-progress-box').forEach(refreshSaveProgressBoxDom);
+    applyAuthUser(session && session.user);
   });
 }
 
 /* =========================================================================
-   CLOUD SYNC — "Save your progress" (spec §7/§14)
+   CLOUD SYNC — "Save your progress" + loading an account's saved sessions
+   back on login (spec §7/§14, and the login→download→show fix below).
 
-   This prepares the app so a logged-in user's sessions CAN be synced to
-   Supabase, without requiring it: anonymous users keep using the existing
-   local-storage system exactly as before (spec §6/§13), and logged-in users
-   get an extra button to push a completed test result to their account.
+   This prepares the app so a logged-in user's sessions ARE synced to
+   Supabase: anonymous users keep using the existing local-storage system
+   exactly as before (spec §6/§13), and logged-in users get an extra button
+   to push a completed test result to their account, and automatically pull
+   their saved sessions back down whenever they log in on any device.
 
-   Expected Supabase schema (create this table in your project when ready):
+   Expected Supabase schema (already created per this project, per the brief):
 
      create table public.typing_sessions (
        id text primary key,
@@ -909,12 +987,95 @@ function initAuthUI(){
        using (auth.uid() = user_id)
        with check (auth.uid() = user_id);
 
-   Until that table exists, syncSessionToCloud() simply fails gracefully and
-   tells the user cloud sync isn't set up yet — it never blocks or breaks the
-   local save, which has already happened via recordSession()/save() by the
-   time this box is shown.
+   Note on per-word/per-key/streak data: DB.mistakeWords, DB.weakKeys and
+   DB.streakData are derived from far more granular local events than this
+   session-level table stores (which exact words/keys were mistyped, which
+   calendar days had a session). They aren't part of the typing_sessions
+   schema, so they can't be reconstructed from the cloud on another device —
+   only session-level stats (WPM, accuracy, counts, XP) travel with the
+   account. That's expected, not a bug; DB.xp and achievements ARE
+   recomputed deterministically from the cloud sessions on every login so
+   those stay consistent across devices.
    ========================================================================= */
 const CLOUD_TABLE = 'typing_sessions';
+
+function mapCloudRowToSession(row){
+  return {
+    id: row.id,
+    mode: row.mode,
+    wpm: Number(row.wpm) || 0,
+    grossWpm: Number(row.gross_wpm) || 0,
+    accuracy: Number(row.accuracy) || 0,
+    correctCharacters: Number(row.correct_characters) || 0,
+    incorrectCharacters: Number(row.incorrect_characters) || 0,
+    totalCharacters: Number(row.total_characters) || 0,
+    durationSec: Number(row.duration_sec) || 0,
+    createdAt: row.created_at ? new Date(row.created_at).toISOString() : new Date().toISOString(),
+    highCourt: !!row.high_court,
+    legalWordMistakes: Number(row.legal_word_mistakes) || 0,
+    punctuationMistakes: Number(row.punctuation_mistakes) || 0,
+    numberDateMistakes: Number(row.number_date_mistakes) || 0,
+    _synced: true // already exists in Supabase — hides the redundant "Save your progress" button if this session's result panel is somehow still on screen
+  };
+}
+
+/* LOGIN → DOWNLOAD THAT USER'S CLOUD SESSIONS → SHOW THAT USER'S PROGRESS. */
+async function loadCloudSessionsForCurrentUser(){
+  if(!currentUser) return;
+  const userId = currentUser.id;
+  const myGeneration = cloudLoadGeneration; // snapshot — bumped again if the account changes mid-flight
+  accountSyncStatus = { state:'loading', count:0 };
+  renderAuthBox();
+  try{
+    const { data, error } = await supabaseClient
+      .from(CLOUD_TABLE)
+      .select('*')
+      .eq('user_id', userId)          // only this user's rows — RLS also enforces this server-side
+      .order('created_at', { ascending: true }); // oldest → newest, matching how DB.sessions is normally built locally
+    if(error) throw error;
+
+    // Stale-response guard: the user may have logged out or switched accounts
+    // while this request was in flight. If so, silently drop this result —
+    // it belongs to a state we've already left.
+    if(myGeneration !== cloudLoadGeneration || !currentUser || currentUser.id !== userId) return;
+
+    const sessions = (data || []).map(mapCloudRowToSession);
+    // Cloud is the single source of truth for this account's progress —
+    // this REPLACES (never merges) whatever was in DB.sessions, so a
+    // different browser's anonymous history can never leak into this
+    // account, and this account's history never leaks into anyone else's.
+    DB.sessions = sessions;
+    DB.xp = sessions.reduce((sum, s)=> sum + Math.round(s.correctCharacters*0.5 + (s.accuracy>=98?20:0) + (s.wpm>=50?15:0)), 0);
+    checkAchievements();
+
+    accountSyncStatus = { state:'loaded', count: sessions.length };
+    renderAllProgressUI();
+  } catch(e){
+    if(myGeneration !== cloudLoadGeneration) return; // irrelevant now, don't show a stale error either
+    console.warn('Failed to load cloud sessions for this account:', e);
+    accountSyncStatus = { state:'error', count:0 };
+    renderAuthBox();
+    // Keep whatever is currently in DB (the cleared, empty account state set
+    // by applyAuthUser just before this ran) rather than ever falling back to
+    // showing a different user's or the anonymous browser's data.
+    renderAllProgressUI();
+  }
+}
+
+/* Refresh every progress-driven part of the UI after an account switch. Every
+   target page section already exists in the DOM (pages are shown/hidden with
+   a CSS class, not added/removed), so it's safe to refresh them all rather
+   than only the currently-visible page. Each call is isolated so one section
+   failing (e.g. Chart.js on a canvas that isn't visible yet) can't stop the
+   rest of the UI from updating. */
+function renderAllProgressUI(){
+  try{ renderDashboard(); }catch(e){ console.warn('renderDashboard refresh failed', e); }
+  try{ renderMistakeBank(); }catch(e){ console.warn('renderMistakeBank refresh failed', e); }
+  try{ renderAchievements(); }catch(e){ console.warn('renderAchievements refresh failed', e); }
+  try{ renderWorkout(); }catch(e){ console.warn('renderWorkout refresh failed', e); }
+  try{ renderProgress('all'); }catch(e){ console.warn('renderProgress refresh failed', e); }
+  try{ if(document.getElementById('page-practice').classList.contains('active')) renderWeakPanel(); }catch(e){ /* practice page not initialized yet */ }
+}
 
 function renderSaveProgressBox(slot, sessionRecord){
   if(!slot) return;
@@ -964,6 +1125,10 @@ async function doSaveProgress(box){
   if(ok){
     sessionRecord._synced = true;
     refreshSaveProgressBoxDom(box);
+    // this session is now also part of the account's cloud-backed progress —
+    // keep the sidebar's synced-session count accurate without a full reload.
+    if(accountSyncStatus.state === 'loaded') accountSyncStatus.count += 1;
+    renderAuthBox();
   } else if(btn){
     btn.disabled = false;
     btn.textContent = 'Save your progress';
@@ -973,7 +1138,10 @@ async function doSaveProgress(box){
 async function syncSessionToCloud(sessionRecord){
   if(!currentUser){ return false; }
   try{
-    const { error } = await supabaseClient.from(CLOUD_TABLE).insert({
+    // upsert (not insert) on the primary key so accidentally saving the same
+    // session twice — e.g. a double click, or a retry after a flaky network
+    // error — updates the same row instead of erroring or duplicating it.
+    const { error } = await supabaseClient.from(CLOUD_TABLE).upsert({
       id: sessionRecord.id,
       user_id: currentUser.id,
       mode: sessionRecord.mode,
@@ -989,12 +1157,12 @@ async function syncSessionToCloud(sessionRecord){
       punctuation_mistakes: sessionRecord.punctuationMistakes,
       number_date_mistakes: sessionRecord.numberDateMistakes,
       created_at: sessionRecord.createdAt
-    });
+    }, { onConflict: 'id' });
     if(error) throw error;
     return true;
   } catch(e){
-    console.warn('Cloud sync failed (is the typing_sessions table set up in Supabase?):', e);
-    alert("Couldn't save to your account yet. Make sure the typing_sessions table has been created in your Supabase project (see comments in the code), then try again.");
+    console.warn('Cloud sync failed:', e);
+    alert("Couldn't save to your account. Please check your connection and try again.");
     return false;
   }
 }
@@ -1064,7 +1232,20 @@ async function loadAll(){
   DB.paragraphHistory = DB.paragraphHistory || {};
   DB.seenContent = DB.seenContent || {};
 }
+/* Session-derived progress fields (sessions, mistakeWords, weakKeys, xp,
+   streakData, achievementsUnlocked) are only ever written to THIS browser's
+   local storage while nobody is logged in. Once an account is active, that
+   data source is the Supabase typing_sessions table (see loadCloudSessionsFor
+   CurrentUser / syncSessionToCloud below) — persisting the in-memory account
+   view back into local storage here would silently overwrite this device's
+   own anonymous history with a different account's data, which is exactly
+   the leak the cloud-sync fix needs to prevent. Non-progress keys (display
+   settings, content-variety history, custom drills, etc.) aren't
+   account-specific and keep saving locally regardless of login state.
+   ========================================================================= */
+const ACCOUNT_ONLY_KEYS = new Set(['sessions','mistakeWords','weakKeys','xp','streakData','achievementsUnlocked']);
 async function save(key){
+  if(typeof currentUser !== 'undefined' && currentUser && ACCOUNT_ONLY_KEYS.has(key)) return;
   try{
     await window.storage.set(key, JSON.stringify(DB[key]), false);
   }catch(e){
@@ -3134,10 +3315,14 @@ function initSettingsUI(){
   renderDashboard();
   // Auth is initialized last and independently of the local data load above —
   // detecting the logged-in user (if any) never blocks or alters the rest of
-  // the app, which is fully usable with zero network/account state.
+  // the app, which is fully usable with zero network/account state. It's
+  // awaited so applyAuthUser() (inside refreshCurrentUser) has finished
+  // clearing/loading account data — and lastProcessedUserId is set — before
+  // anything else in the app can race it (e.g. onAuthStateChange firing
+  // almost immediately after initAuthUI subscribes).
   renderAuthBox();
   initAuthUI();
-  refreshCurrentUser();
+  await refreshCurrentUser();
 })();
 </script>
 </body>
