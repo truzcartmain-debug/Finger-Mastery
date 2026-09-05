@@ -758,10 +758,12 @@ function renderAuthBox(){
         <button class="btn ghost" id="logoutBtn">Log out</button>
       </div>
       ${statusLine}
+      <div class="auth-note">New results save to your account automatically. <button class="link-btn" id="backfillBtn">Upload this device's older sessions too</button></div>
     `;
     document.getElementById('logoutBtn').addEventListener('click', handleLogout);
     const retryBtn = document.getElementById('retryCloudLoadBtn');
     if(retryBtn) retryBtn.addEventListener('click', loadCloudSessionsForCurrentUser);
+    document.getElementById('backfillBtn').addEventListener('click', backfillLocalSessionsToAccount);
   } else {
     box.innerHTML = `
       <div style="margin-bottom:8px;">Not logged in. Progress is saved on this device only.</div>
@@ -1094,19 +1096,23 @@ function refreshSaveProgressBoxDom(box){
   const sessionRecord = box._sessionRecord;
   if(!sessionRecord) return;
   if(currentUser){
-    const alreadySynced = !!sessionRecord._synced;
-    box.innerHTML = `
-      <div class="sp-text">${alreadySynced ? '☁ <b>Saved to your account.</b>' : 'This result is saved on this device. <b>Save it to your account</b> to keep it across devices too.'}</div>
-      <div class="sp-actions">
-        ${alreadySynced ? '' : `<button class="btn sp-save-btn">Save your progress</button>`}
-      </div>
-    `;
-    if(!alreadySynced){
+    // Logged-in users no longer need to click anything — recordSession()
+    // kicks off autoSyncSessionToCloud() the moment a test finishes, and this
+    // box just reflects whatever that background save is currently doing.
+    if(sessionRecord._synced){
+      box.innerHTML = `<div class="sp-text">☁ <b>Saved to your account</b> — synced automatically, no action needed.</div>`;
+    } else if(sessionRecord._syncFailed){
+      box.innerHTML = `
+        <div class="sp-text">⚠ Couldn't auto-save this result to your account (check your connection).</div>
+        <div class="sp-actions"><button class="btn sp-save-btn">Retry save</button></div>
+      `;
       box.querySelector('.sp-save-btn').addEventListener('click', ()=> doSaveProgress(box));
+    } else {
+      box.innerHTML = `<div class="sp-text">☁ Saving to your account…</div>`;
     }
   } else {
     box.innerHTML = `
-      <div class="sp-text">This result is saved on this device. <b>Log in or sign up</b> to also save your progress to your account.</div>
+      <div class="sp-text">This result is saved on this device. <b>Log in or sign up</b> and future results will save to your account automatically.</div>
       <div class="sp-actions">
         <button class="btn ghost sp-login-btn">Log in</button>
         <button class="btn sp-signup-btn">Sign up</button>
@@ -1117,25 +1123,58 @@ function refreshSaveProgressBoxDom(box){
   }
 }
 
+/* Called once, right when recordSession() finishes a test while a user is
+   logged in — this is what makes saving automatic instead of requiring the
+   old manual "Save your progress" click. It updates the `session` object
+   in place; since showResult()'s save-progress box holds a reference to that
+   exact same object, re-rendering that one box (if it's still on screen)
+   picks the change up with no extra bookkeeping. */
+async function autoSyncSessionToCloud(session){
+  session._syncing = true;
+  refreshSaveProgressBoxForSession(session.id);
+  const ok = await syncSessionToCloud(session);
+  session._syncing = false;
+  if(ok){
+    session._synced = true;
+    session._syncFailed = false;
+    // keep the sidebar's synced-session count accurate without a full reload
+    if(accountSyncStatus.state === 'loaded') accountSyncStatus.count += 1;
+    renderAuthBox();
+  } else {
+    session._syncFailed = true;
+  }
+  refreshSaveProgressBoxForSession(session.id);
+}
+function refreshSaveProgressBoxForSession(sessionId){
+  const box = document.querySelector(`.save-progress-box[data-session-id="${sessionId}"]`);
+  if(box) refreshSaveProgressBoxDom(box);
+}
+
 async function doSaveProgress(box){
   const sessionRecord = box._sessionRecord;
   const btn = box.querySelector('.sp-save-btn');
   if(btn){ btn.disabled = true; btn.textContent = 'Saving…'; }
+  sessionRecord._syncFailed = false;
   const ok = await syncSessionToCloud(sessionRecord);
   if(ok){
     sessionRecord._synced = true;
+    sessionRecord._syncFailed = false;
     refreshSaveProgressBoxDom(box);
     // this session is now also part of the account's cloud-backed progress —
     // keep the sidebar's synced-session count accurate without a full reload.
     if(accountSyncStatus.state === 'loaded') accountSyncStatus.count += 1;
     renderAuthBox();
-  } else if(btn){
-    btn.disabled = false;
-    btn.textContent = 'Save your progress';
+  } else {
+    sessionRecord._syncFailed = true;
+    if(btn){
+      btn.disabled = false;
+      btn.textContent = 'Retry save';
+    }
   }
 }
 
-async function syncSessionToCloud(sessionRecord){
+async function syncSessionToCloud(sessionRecord, opts){
+  opts = opts || {};
   if(!currentUser){ return false; }
   try{
     // upsert (not insert) on the primary key so accidentally saving the same
@@ -1162,9 +1201,45 @@ async function syncSessionToCloud(sessionRecord){
     return true;
   } catch(e){
     console.warn('Cloud sync failed:', e);
-    alert("Couldn't save to your account. Please check your connection and try again.");
+    // silent:true is used by background/bulk callers (auto-save-on-finish,
+    // the multi-session backfill below) which report failures on their own
+    // terms instead of popping an alert per session.
+    if(!opts.silent) alert("Couldn't save to your account. Please check your connection and try again.");
     return false;
   }
+}
+
+/* Explicit, opt-in bulk upload of whatever sessions are sitting in this
+   browser's local storage (e.g. tests completed before this account existed,
+   or while offline) — the user must click a button for this to run. This is
+   deliberately NOT automatic: silently merging one device's anonymous/local
+   history into an account on every login is exactly the data-mixing this
+   app's login/cloud-sync design avoids (see loadCloudSessionsForCurrentUser).
+   Auto-save (autoSyncSessionToCloud) only ever covers sessions completed
+   *while* logged in; this covers everything that came before, on request. */
+async function backfillLocalSessionsToAccount(){
+  if(!currentUser) return;
+  let localSessions = [];
+  try{
+    const r = await window.storage.get('sessions', false);
+    if(r && r.value) localSessions = JSON.parse(r.value);
+  }catch(e){ /* nothing saved locally on this device yet */ }
+  if(!localSessions.length){
+    alert("No older sessions were found saved on this device to upload.");
+    return;
+  }
+  if(!confirm(`Upload ${localSessions.length} session(s) saved on this device to your account (${currentUser.email})?`)) return;
+  const btn = document.getElementById('backfillBtn');
+  if(btn){ btn.disabled = true; btn.textContent = 'Uploading…'; }
+  let okCount = 0;
+  for(const s of localSessions){
+    const ok = await syncSessionToCloud(s, {silent:true});
+    if(ok) okCount++;
+  }
+  alert(okCount === localSessions.length
+    ? `Uploaded all ${okCount} session(s) to your account.`
+    : `Uploaded ${okCount} of ${localSessions.length} session(s). Some failed — check your connection and try again.`);
+  await loadCloudSessionsForCurrentUser(); // refresh the dashboard/progress with the newly uploaded rows included
 }
 </script>
 
@@ -2477,6 +2552,16 @@ async function recordSession(mode, result, opts, sessionRecord){
 
   renderDashboard();
   if(document.getElementById('page-practice').classList.contains('active')) renderWeakPanel();
+
+  // Auto-save to the cloud the instant a test finishes, if logged in — no
+  // "Save your progress" click required any more. Fire-and-forget: it must
+  // never block or delay showing the result, and its outcome is reflected
+  // back into whichever result panel (if any) is still showing this exact
+  // session, via the shared `session` object reference (see
+  // autoSyncSessionToCloud / refreshSaveProgressBoxDom above).
+  if(currentUser){
+    autoSyncSessionToCloud(session);
+  }
 }
 
 function updateStreak(){
