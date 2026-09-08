@@ -8,6 +8,12 @@
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <style>
+@font-face{
+  font-family:'Kruti Dev 010';
+  src:local('Kruti Dev 010'), local('KrutiDev010'), local('Kruti Dev'),
+      url('https://cdn.jsdelivr.net/gh/TGNYC/Kriti-Dev-to-Unicode@master/Kruti%20Dev%20010%20Regular.ttf') format('truetype');
+  font-weight:normal; font-style:normal; font-display:swap;
+}
 :root{
   --bg:#0c0e14;
   --surface:#141721;
@@ -30,6 +36,32 @@
   --mono:'JetBrains Mono', ui-monospace, monospace;
   --sans:'Inter', system-ui, sans-serif;
   --display:'Sora', 'Inter', system-ui, sans-serif;
+  --kruti:'Kruti Dev 010', sans-serif;
+}
+/* ---------- light theme override (spec: Dark/Light mode) ---------- */
+html[data-theme="light"]{
+  --bg:#f5f6fa;
+  --surface:#ffffff;
+  --surface2:#f0f1f6;
+  --surface3:#e7e9f2;
+  --border:#dde0ea;
+  --text:#171923;
+  --text-dim:#565d72;
+  --text-faint:#8a90a6;
+  --accent:#0d9488;
+  --accent2:#6d5adf;
+  --accent-dim:#d9f4f0;
+  --accent-glow:rgba(13,148,136,.25);
+  --good:#16a34a;
+  --good-dim:#dcf5e4;
+  --bad:#e11d48;
+  --bad-dim:#fbdde4;
+  --info:#0284c7;
+}
+html[data-theme="light"] body{
+  background-image:
+    radial-gradient(circle at 12% 0%, rgba(13,148,136,.06), transparent 42%),
+    radial-gradient(circle at 100% 100%, rgba(109,90,223,.05), transparent 45%);
 }
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;}
@@ -78,6 +110,23 @@ a{color:inherit;}
   border:1px solid var(--border);font-size:12px;color:var(--text-dim);
 }
 .streak-chip b{color:var(--accent);font-family:var(--mono);}
+
+.lang-theme-row{display:flex;gap:8px;margin:0 4px 14px 4px;}
+.lang-switch{display:flex;border:1px solid var(--border);border-radius:8px;overflow:hidden;flex:1.4;}
+.lang-switch button{
+  all:unset;cursor:pointer;flex:1;text-align:center;padding:8px 4px;font-size:12px;font-weight:700;
+  color:var(--text-dim);background:var(--surface2);
+}
+.lang-switch button.active{background:var(--accent);color:var(--bg);}
+.theme-toggle-btn{
+  all:unset;cursor:pointer;flex:1;text-align:center;padding:8px 6px;border-radius:8px;
+  background:var(--surface2);border:1px solid var(--border);font-size:14px;
+  color:var(--text-dim);transition:.12s;
+}
+.theme-toggle-btn:hover{color:var(--text);border-color:var(--accent-dim);}
+[data-lang="hi"] .en-only{display:none !important;}
+[data-lang="en"] .hi-only{display:none !important;}
+.kruti-text{font-family:var(--kruti);}
 
 .main{padding:26px 34px 60px 34px;max-width:1180px;}
 .page{display:none;}
@@ -399,20 +448,27 @@ canvas{max-width:100%;}
 <div class="app">
   <aside class="sidebar">
     <div class="brand"><span class="dot"></span>Finger Training Master</div>
+    <div class="lang-theme-row">
+      <div class="lang-switch" id="langSwitch">
+        <button data-lang="en" class="active">EN</button>
+        <button data-lang="hi">हिंदी</button>
+      </div>
+      <button class="theme-toggle-btn" id="themeToggleBtn" title="Toggle dark/light theme">🌙</button>
+    </div>
     <div class="auth-box" id="authBox"><!-- filled by renderAuthBox() --></div>
     <div class="streak-chip" id="streakChip">🔥 <b>0</b> day streak</div>
     <nav class="nav" id="nav">
-      <button data-page="dashboard" class="active"><span class="ico">01</span>Dashboard</button>
-      <button data-page="practice"><span class="ico">02</span>Practice</button>
-      <button data-page="drillbuilder"><span class="ico">DB</span>Drill Builder</button>
-      <button data-page="highcourt"><span class="ico">HC</span>High Court Coach</button>
-      <button data-page="wpmtest"><span class="ico">03</span>WPM Test</button>
-      <button data-page="mistakes"><span class="ico">04</span>Mistake Bank</button>
-      <button data-page="progress"><span class="ico">05</span>Progress</button>
-      <button data-page="workout"><span class="ico">06</span>Daily Workout</button>
-      <button data-page="achievements"><span class="ico">07</span>Achievements</button>
+      <button data-page="dashboard" class="active"><span class="ico">01</span><span data-t="nav.dashboard">Dashboard</span></button>
+      <button data-page="practice"><span class="ico">02</span><span data-t="nav.practice">Practice</span></button>
+      <button data-page="drillbuilder" class="en-only"><span class="ico">DB</span><span data-t="nav.drillbuilder">Drill Builder</span></button>
+      <button data-page="highcourt"><span class="ico">HC</span><span data-t="nav.highcourt">High Court Coach</span></button>
+      <button data-page="wpmtest"><span class="ico">03</span><span data-t="nav.wpmtest">WPM Test</span></button>
+      <button data-page="mistakes"><span class="ico">04</span><span data-t="nav.mistakes">Mistake Bank</span></button>
+      <button data-page="progress"><span class="ico">05</span><span data-t="nav.progress">Progress</span></button>
+      <button data-page="workout" class="en-only"><span class="ico">06</span><span data-t="nav.workout">Daily Workout</span></button>
+      <button data-page="achievements"><span class="ico">07</span><span data-t="nav.achievements">Achievements</span></button>
       <div class="nav-sep"></div>
-      <button data-page="settings"><span class="ico">·</span>Settings</button>
+      <button data-page="settings"><span class="ico">·</span><span data-t="nav.settings">Settings</span></button>
     </nav>
     <div class="side-foot">v1.0 · local coach engine</div>
   </aside>
@@ -421,8 +477,8 @@ canvas{max-width:100%;}
 
     <!-- DASHBOARD -->
     <section class="page active" id="page-dashboard">
-      <h1 class="page-title">Dashboard</h1>
-      <p class="page-sub">Your typing performance at a glance.</p>
+      <h1 class="page-title" data-t="page.dashboard.title">Dashboard</h1>
+      <p class="page-sub" data-t="page.dashboard.sub">Your typing performance at a glance.</p>
 
       <div class="grid g-stats" id="dashStats"></div>
 
@@ -452,8 +508,8 @@ canvas{max-width:100%;}
 
     <!-- PRACTICE -->
     <section class="page" id="page-practice">
-      <h1 class="page-title">Practice</h1>
-      <p class="page-sub">Choose a training mode. The coach will target your weak areas automatically.</p>
+      <h1 class="page-title" data-t="page.practice.title">Practice</h1>
+      <p class="page-sub" data-t="page.practice.sub">Choose a training mode. The coach will target your weak areas automatically.</p>
 
       <div class="card" id="practiceWeakPanel" style="margin-bottom:16px;"></div>
 
@@ -541,8 +597,8 @@ canvas{max-width:100%;}
 
     <!-- HIGH COURT STENOGRAPHER COACH -->
     <section class="page" id="page-highcourt">
-      <h1 class="page-title">High Court Stenographer Coach</h1>
-      <p class="page-sub">Court-style speed, accuracy, legal vocabulary, dictation and transcription — with adaptive coaching.</p>
+      <h1 class="page-title" data-t="page.highcourt.title">High Court Stenographer Coach</h1>
+      <p class="page-sub" data-t="page.highcourt.sub">Court-style speed, accuracy, legal vocabulary, dictation and transcription — with adaptive coaching.</p>
       <div class="coach-box" id="hcCoachBox"><div class="tag">Personal stenographer coach</div><p>Listen → Remember → Transcribe → Type Fast → Maintain High Accuracy.</p></div>
       <div class="section-title">Training modes</div>
       <div class="mode-grid" id="hcModeGrid"></div>
@@ -552,16 +608,16 @@ canvas{max-width:100%;}
 
     <!-- WPM TEST -->
     <section class="page" id="page-wpmtest">
-      <h1 class="page-title">WPM Test</h1>
-      <p class="page-sub">Standard timed typing-speed test. WPM = (correct characters ÷ 5) ÷ minutes.</p>
+      <h1 class="page-title" data-t="page.wpmtest.title">WPM Test</h1>
+      <p class="page-sub" data-t="page.wpmtest.sub">Standard timed typing-speed test. WPM = (correct characters ÷ 5) ÷ minutes.</p>
       <div class="subpicker" id="durationPicker"></div>
       <div id="wpmStage"></div>
     </section>
 
     <!-- MISTAKE BANK -->
     <section class="page" id="page-mistakes">
-      <h1 class="page-title">Mistake Bank</h1>
-      <p class="page-sub">Every word you've mistyped, tracked over time. Drill the worst offenders directly.</p>
+      <h1 class="page-title" data-t="page.mistakes.title">Mistake Bank</h1>
+      <p class="page-sub" data-t="page.mistakes.sub">Every word you've mistyped, tracked over time. Drill the worst offenders directly.</p>
       <div class="card">
         <table>
           <thead><tr><th>Word</th><th class="num">Attempts</th><th class="num">Errors</th><th>Accuracy</th><th class="num">Last practiced</th><th></th></tr></thead>
@@ -572,8 +628,8 @@ canvas{max-width:100%;}
 
     <!-- PROGRESS -->
     <section class="page" id="page-progress">
-      <h1 class="page-title">Progress</h1>
-      <p class="page-sub">Track your improvement over time.</p>
+      <h1 class="page-title" data-t="page.progress.title">Progress</h1>
+      <p class="page-sub" data-t="page.progress.sub">Track your improvement over time.</p>
       <div class="progress-filters" id="progressFilters"></div>
       <div class="two-col">
         <div class="card"><div style="font-size:12px;color:var(--text-faint);margin-bottom:10px;">WPM over time</div><canvas id="wpmChart" height="220"></canvas></div>
@@ -592,8 +648,8 @@ canvas{max-width:100%;}
 
     <!-- ACHIEVEMENTS -->
     <section class="page" id="page-achievements">
-      <h1 class="page-title">Achievements</h1>
-      <p class="page-sub">Gamification is secondary — but progress deserves recognition.</p>
+      <h1 class="page-title" data-t="page.achievements.title">Achievements</h1>
+      <p class="page-sub" data-t="page.achievements.sub">Gamification is secondary — but progress deserves recognition.</p>
       <div class="grid g-stats" style="margin-bottom:10px;">
         <div class="card stat-card"><div class="label">Level</div><div class="value accent" id="xpLevel">1</div><div class="sub" id="xpSub">0 XP</div></div>
         <div class="card stat-card"><div class="label">Words typed</div><div class="value" id="totalWordsStat">0</div></div>
@@ -604,7 +660,7 @@ canvas{max-width:100%;}
 
     <!-- SETTINGS -->
     <section class="page" id="page-settings">
-      <h1 class="page-title">Settings</h1>
+      <h1 class="page-title" data-t="page.settings.title">Settings</h1>
       <div class="card">
         <div class="settings-row">
           <div><div class="s-label">Sound effects</div><div class="s-desc">Short click / error tones while typing</div></div>
@@ -696,7 +752,18 @@ canvas{max-width:100%;}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 /* =========================================================================
-   SUPABASE CONFIGURATION — fill in your own values below
+   ★★★ SUPABASE CONFIGURATION — PASTE YOUR REAL VALUES ON THE TWO LINES BELOW ★★★
+
+   Where to find these in your Supabase project:
+     Project Settings → API → "Project URL"            → SUPABASE_URL
+     Project Settings → API → "Project API keys"
+       → "anon" / "publishable" key (NOT "service_role") → SUPABASE_PUBLISHABLE_KEY
+
+   SECURITY: only the anon/publishable key belongs here. It is safe to expose
+   in client-side code — it can only do what your RLS policies allow (see the
+   accompanying SQL migration). NEVER paste the service_role/secret key into
+   this file or any other browser-side code; it bypasses RLS entirely and
+   would let anyone who views your page source read/write every user's data.
    ========================================================================= */
 const SUPABASE_URL = 'https://wrciexrvqrgckaqlgwga.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_CPQrm079aIgM1u0dKUyo_g_oNd7B0qE';
@@ -747,23 +814,21 @@ function renderAuthBox(){
     } else if(accountSyncStatus.state === 'error'){
       statusLine = `<div class="auth-note" style="color:var(--bad);">Couldn't load your cloud progress. <button class="link-btn" id="retryCloudLoadBtn">Retry</button></div>`;
     } else if(accountSyncStatus.state === 'loaded'){
-      statusLine = `<div class="auth-note">☁ ${accountSyncStatus.count} session${accountSyncStatus.count===1?'':'s'} synced from your account.</div>`;
+      statusLine = `<div class="auth-note">☁ ${accountSyncStatus.count} session${accountSyncStatus.count===1?'':'s'} synced. New sessions save automatically.</div>`;
     }
     box.innerHTML = `
       <div class="auth-user">
-        <div class="auth-avatar">${initial}</div>
-        <div class="auth-email" title="${email}">${email}</div>
+        <div class="auth-avatar">${escapeHtml(initial)}</div>
+        <div class="auth-email" title="${escapeHtml(email)}">${escapeHtml(email)}</div>
       </div>
       <div class="auth-btns">
         <button class="btn ghost" id="logoutBtn">Log out</button>
       </div>
       ${statusLine}
-      <div class="auth-note">New results save to your account automatically. <button class="link-btn" id="backfillBtn">Upload this device's older sessions too</button></div>
     `;
     document.getElementById('logoutBtn').addEventListener('click', handleLogout);
     const retryBtn = document.getElementById('retryCloudLoadBtn');
     if(retryBtn) retryBtn.addEventListener('click', loadCloudSessionsForCurrentUser);
-    document.getElementById('backfillBtn').addEventListener('click', backfillLocalSessionsToAccount);
   } else {
     box.innerHTML = `
       <div style="margin-bottom:8px;">Not logged in. Progress is saved on this device only.</div>
@@ -795,8 +860,8 @@ function applyAuthModalMode(){
   const isLogin = authModalMode === 'login';
   document.getElementById('authModalTitle').textContent = isLogin ? 'Log in' : 'Sign up';
   document.getElementById('authModalSub').textContent = isLogin
-    ? 'Log in to sync your typing progress across devices.'
-    : 'Create a free account to save your typing progress across devices.';
+    ? 'Log in to automatically save and sync your typing progress across devices.'
+    : 'Create a free account — every session then saves to your account automatically.';
   document.getElementById('authModalSubmit').textContent = isLogin ? 'Log in' : 'Sign up';
   document.getElementById('authPassword').autocomplete = isLogin ? 'current-password' : 'new-password';
   document.getElementById('authModalSwitchText').textContent = isLogin ? "Don't have an account?" : 'Already have an account?';
@@ -903,9 +968,12 @@ async function applyAuthUser(user){
     DB.sessions = [];
     DB.mistakeWords = {};
     DB.weakKeys = {};
+    DB.mistakeWordsHi = {};
+    DB.weakKeysHi = {};
     DB.streakData = { count:0, best:0, last:null };
     DB.achievementsUnlocked = [];
     DB.xp = 0;
+    DB.customDrills = [];
     accountSyncStatus = { state:'loading', count:0 };
     renderAuthBox();
     renderAllProgressUI();
@@ -955,51 +1023,32 @@ function initAuthUI(){
 }
 
 /* =========================================================================
-   CLOUD SYNC — "Save your progress" + loading an account's saved sessions
-   back on login (spec §7/§14, and the login→download→show fix below).
+   CLOUD SYNC — complete account progress: sessions, per-mistake detail
+   (for Mistake Bank / weak keys), and custom drills, all downloaded on
+   login and uploaded as they're created while logged in (spec §4/§7/§13/§16).
 
-   This prepares the app so a logged-in user's sessions ARE synced to
-   Supabase: anonymous users keep using the existing local-storage system
-   exactly as before (spec §6/§13), and logged-in users get an extra button
-   to push a completed test result to their account, and automatically pull
-   their saved sessions back down whenever they log in on any device.
+   Expected Supabase schema — see the full migration SQL delivered alongside
+   this file for CREATE TABLE / RLS / indexes. Summary:
 
-   Expected Supabase schema (already created per this project, per the brief):
+     public.typing_sessions       (adds a `lang` text column, default 'en')
+     public.typing_mistakes       (id uuid, user_id, session_id, lang, word,
+                                    expected_key, typed_key, mistake_type,
+                                    created_at)
+     public.typing_custom_drills  (id text, user_id, name, type, keys,
+                                    finger, pattern, words, difficulty,
+                                    duration, reps, created_at, updated_at)
 
-     create table public.typing_sessions (
-       id text primary key,
-       user_id uuid references auth.users(id) not null,
-       mode text,
-       wpm int,
-       gross_wpm int,
-       accuracy numeric,
-       correct_characters int,
-       incorrect_characters int,
-       total_characters int,
-       duration_sec int,
-       high_court boolean,
-       legal_word_mistakes int,
-       punctuation_mistakes int,
-       number_date_mistakes int,
-       created_at timestamptz default now()
-     );
-     alter table public.typing_sessions enable row level security;
-     create policy "individuals can manage their own sessions"
-       on public.typing_sessions for all
-       using (auth.uid() = user_id)
-       with check (auth.uid() = user_id);
-
-   Note on per-word/per-key/streak data: DB.mistakeWords, DB.weakKeys and
-   DB.streakData are derived from far more granular local events than this
-   session-level table stores (which exact words/keys were mistyped, which
-   calendar days had a session). They aren't part of the typing_sessions
-   schema, so they can't be reconstructed from the cloud on another device —
-   only session-level stats (WPM, accuracy, counts, XP) travel with the
-   account. That's expected, not a bug; DB.xp and achievements ARE
-   recomputed deterministically from the cloud sessions on every login so
-   those stay consistent across devices.
+   DB.mistakeWords / DB.weakKeys (and their Hindi counterparts) are NOT
+   stored as pre-aggregated rows in Supabase — they're reconstructed from
+   the raw typing_mistakes rows every time cloud data loads, exactly the way
+   recordSession() builds them locally from a completed session. That keeps
+   one code path (see rebuildMistakeStoresFromRows below) as the single
+   source of truth for "how mistakes turn into Mistake Bank stats," whether
+   the data just came from this device or from the cloud.
    ========================================================================= */
 const CLOUD_TABLE = 'typing_sessions';
+const MISTAKES_TABLE = 'typing_mistakes';
+const DRILLS_TABLE = 'typing_custom_drills';
 
 function mapCloudRowToSession(row){
   return {
@@ -1013,15 +1062,56 @@ function mapCloudRowToSession(row){
     totalCharacters: Number(row.total_characters) || 0,
     durationSec: Number(row.duration_sec) || 0,
     createdAt: row.created_at ? new Date(row.created_at).toISOString() : new Date().toISOString(),
+    lang: row.lang === 'hi' ? 'hi' : 'en', // older rows saved before the `lang` column existed default to 'en'
     highCourt: !!row.high_court,
     legalWordMistakes: Number(row.legal_word_mistakes) || 0,
     punctuationMistakes: Number(row.punctuation_mistakes) || 0,
     numberDateMistakes: Number(row.number_date_mistakes) || 0,
-    _synced: true // already exists in Supabase — hides the redundant "Save your progress" button if this session's result panel is somehow still on screen
+    _synced: true, // already exists in Supabase — hides the redundant "Save your progress" button if this session's result panel is somehow still on screen
+    _mistakesSynced: true
   };
 }
+function mapCloudRowToDrill(row){
+  return {
+    id: row.id, name: row.name, type: row.type, keys: row.keys || '', finger: row.finger || 'homerow',
+    pattern: row.pattern || '', words: row.words || '', difficulty: row.difficulty || 'medium',
+    duration: Number(row.duration) || 0, reps: Number(row.reps) || 3
+  };
+}
+/* Single source of truth for turning a flat list of individual mistakes (rows
+   from typing_mistakes, or the in-memory result.mistakes of a session just
+   completed) into the same {word/key: {attempts, errors/mistakes, ...}}
+   shape the rest of the app (Mistake Bank, weak-key chips, adaptive coach)
+   already expects — used both for local recordSession() and for rebuilding
+   everything from the cloud after login. */
+function rebuildMistakeStoresFromRows(rows){
+  const stores = { mistakeWords:{}, weakKeys:{}, mistakeWordsHi:{}, weakKeysHi:{} };
+  rows.forEach(r=>{
+    const isHi = r.lang === 'hi';
+    const mwStore = isHi ? stores.mistakeWordsHi : stores.mistakeWords;
+    const wkStore = isHi ? stores.weakKeysHi : stores.weakKeys;
+    const wordKey = (r.word||'').toLowerCase();
+    const when = r.created_at || r.createdAt || null;
+    if(wordKey){
+      if(!mwStore[wordKey]) mwStore[wordKey] = {word:wordKey, attempts:0, errors:0, lastPracticed:null};
+      mwStore[wordKey].attempts += 1;
+      mwStore[wordKey].errors += 1;
+      if(when && (!mwStore[wordKey].lastPracticed || when > mwStore[wordKey].lastPracticed)) mwStore[wordKey].lastPracticed = when;
+    }
+    const keyKey = r.expected_key || r.expected;
+    if(keyKey){
+      if(!wkStore[keyKey]) wkStore[keyKey] = {key:keyKey, attempts:0, mistakes:0};
+      wkStore[keyKey].attempts += 1;
+      wkStore[keyKey].mistakes += 1;
+    }
+  });
+  return stores;
+}
 
-/* LOGIN → DOWNLOAD THAT USER'S CLOUD SESSIONS → SHOW THAT USER'S PROGRESS. */
+/* LOGIN → DOWNLOAD THAT USER'S CLOUD SESSIONS, MISTAKES & DRILLS → SHOW THAT
+   USER'S COMPLETE PROGRESS. All three queries run in parallel and share one
+   generation guard, so a logout/account-switch mid-flight discards all of
+   them together rather than partially applying a stale result. */
 async function loadCloudSessionsForCurrentUser(){
   if(!currentUser) return;
   const userId = currentUser.id;
@@ -1029,32 +1119,49 @@ async function loadCloudSessionsForCurrentUser(){
   accountSyncStatus = { state:'loading', count:0 };
   renderAuthBox();
   try{
-    const { data, error } = await supabaseClient
-      .from(CLOUD_TABLE)
-      .select('*')
-      .eq('user_id', userId)          // only this user's rows — RLS also enforces this server-side
-      .order('created_at', { ascending: true }); // oldest → newest, matching how DB.sessions is normally built locally
-    if(error) throw error;
+    const [sessionsRes, mistakesRes, drillsRes] = await Promise.all([
+      supabaseClient.from(CLOUD_TABLE).select('*').eq('user_id', userId).order('created_at', { ascending: true }),
+      supabaseClient.from(MISTAKES_TABLE).select('*').eq('user_id', userId),
+      supabaseClient.from(DRILLS_TABLE).select('*').eq('user_id', userId).order('created_at', { ascending: true })
+    ]);
+    if(sessionsRes.error) throw sessionsRes.error;
+    // Mistakes/drills tables might not exist yet on a project that hasn't run
+    // the migration — degrade gracefully instead of blocking session sync.
+    const mistakeRows = mistakesRes.error ? (console.warn('typing_mistakes unavailable:', mistakesRes.error), []) : (mistakesRes.data||[]);
+    const drillRows = drillsRes.error ? (console.warn('typing_custom_drills unavailable:', drillsRes.error), []) : (drillsRes.data||[]);
 
     // Stale-response guard: the user may have logged out or switched accounts
     // while this request was in flight. If so, silently drop this result —
     // it belongs to a state we've already left.
     if(myGeneration !== cloudLoadGeneration || !currentUser || currentUser.id !== userId) return;
 
-    const sessions = (data || []).map(mapCloudRowToSession);
+    const sessions = (sessionsRes.data || []).map(mapCloudRowToSession);
     // Cloud is the single source of truth for this account's progress —
     // this REPLACES (never merges) whatever was in DB.sessions, so a
     // different browser's anonymous history can never leak into this
     // account, and this account's history never leaks into anyone else's.
     DB.sessions = sessions;
     DB.xp = sessions.reduce((sum, s)=> sum + Math.round(s.correctCharacters*0.5 + (s.accuracy>=98?20:0) + (s.wpm>=50?15:0)), 0);
+
+    const stores = rebuildMistakeStoresFromRows(mistakeRows);
+    DB.mistakeWords = stores.mistakeWords;
+    DB.weakKeys = stores.weakKeys;
+    DB.mistakeWordsHi = stores.mistakeWordsHi;
+    DB.weakKeysHi = stores.weakKeysHi;
+
+    DB.customDrills = drillRows.map(mapCloudRowToDrill);
+
+    // Streak/best-streak/achievements are always recomputed from the actual
+    // session dates just downloaded — never left at whatever applyAuthUser's
+    // pre-clear set them to (spec §11/§12).
+    DB.streakData = recomputeStreakFromSessions(DB.sessions);
     checkAchievements();
 
     accountSyncStatus = { state:'loaded', count: sessions.length };
     renderAllProgressUI();
   } catch(e){
     if(myGeneration !== cloudLoadGeneration) return; // irrelevant now, don't show a stale error either
-    console.warn('Failed to load cloud sessions for this account:', e);
+    console.warn('Failed to load cloud data for this account:', e);
     accountSyncStatus = { state:'error', count:0 };
     renderAuthBox();
     // Keep whatever is currently in DB (the cleared, empty account state set
@@ -1077,6 +1184,8 @@ function renderAllProgressUI(){
   try{ renderWorkout(); }catch(e){ console.warn('renderWorkout refresh failed', e); }
   try{ renderProgress('all'); }catch(e){ console.warn('renderProgress refresh failed', e); }
   try{ if(document.getElementById('page-practice').classList.contains('active')) renderWeakPanel(); }catch(e){ /* practice page not initialized yet */ }
+  try{ if(document.getElementById('db-saved-list')) renderSavedDrills(); }catch(e){ console.warn('renderSavedDrills refresh failed', e); }
+  try{ if(document.getElementById('page-highcourt').classList.contains('active')) hcRenderCoachSummary(); }catch(e){ /* high court page not initialized yet */ }
 }
 
 function renderSaveProgressBox(slot, sessionRecord){
@@ -1095,24 +1204,48 @@ function refreshSaveProgressBoxDom(box){
   if(!box || !box.isConnected) return;
   const sessionRecord = box._sessionRecord;
   if(!sessionRecord) return;
+  if(currentUser && sessionRecord._ownerUserId && sessionRecord._ownerUserId !== currentUser.id){
+    // This result was completed under a DIFFERENT account than the one
+    // active right now (e.g. it finished saving for Account A right as the
+    // user switched to Account B, or the box is a leftover from before an
+    // account switch). Never sync it — or claim it's synced — under the
+    // wrong account; just show a neutral, read-only note.
+    box.innerHTML = `<div class="sp-text">This result belongs to a different account and won't be saved here.</div>`;
+    return;
+  }
   if(currentUser){
-    // Logged-in users no longer need to click anything — recordSession()
-    // kicks off autoSyncSessionToCloud() the moment a test finishes, and this
-    // box just reflects whatever that background save is currently doing.
-    if(sessionRecord._synced){
-      box.innerHTML = `<div class="sp-text">☁ <b>Saved to your account</b> — synced automatically, no action needed.</div>`;
-    } else if(sessionRecord._syncFailed){
+    if(sessionRecord._synced && sessionRecord._mistakesSynced){
+      box.innerHTML = `<div class="sp-text">☁ <b>Saved to your account.</b> Your progress now syncs automatically whenever you're logged in — nothing to click.</div>`;
+      return;
+    }
+    if(sessionRecord._syncFailed){
+      // the session row itself failed to save — offer a full manual retry
+      // instead of silently retrying forever in the background.
       box.innerHTML = `
-        <div class="sp-text">⚠ Couldn't auto-save this result to your account (check your connection).</div>
+        <div class="sp-text">Couldn't reach the server to save this to your account. It's still safe on this device.</div>
         <div class="sp-actions"><button class="btn sp-save-btn">Retry save</button></div>
       `;
       box.querySelector('.sp-save-btn').addEventListener('click', ()=> doSaveProgress(box));
-    } else {
-      box.innerHTML = `<div class="sp-text">☁ Saving to your account…</div>`;
+      return;
     }
+    if(sessionRecord._synced && sessionRecord._mistakesSyncFailed){
+      // The session itself IS safely saved — only the per-mistake detail
+      // (needed to rebuild Mistake Bank / weak keys on another device)
+      // failed, so this gets its own distinct retry rather than being
+      // silently swallowed or misreported as "fully saved".
+      box.innerHTML = `
+        <div class="sp-text">Session saved, but its mistake details didn't upload (Mistake Bank may be incomplete on other devices until this retries).</div>
+        <div class="sp-actions"><button class="btn sp-save-btn">Retry mistake sync</button></div>
+      `;
+      box.querySelector('.sp-save-btn').addEventListener('click', ()=> doSaveProgress(box));
+      return;
+    }
+    // Logged in and not yet fully synced: save automatically, right now — no click required.
+    box.innerHTML = `<div class="sp-text">☁ Saving to your account…</div>`;
+    doSaveProgress(box);
   } else {
     box.innerHTML = `
-      <div class="sp-text">This result is saved on this device. <b>Log in or sign up</b> and future results will save to your account automatically.</div>
+      <div class="sp-text">This result is saved on this device. <b>Log in or sign up</b> to also save your progress to your account — every future session will then sync automatically.</div>
       <div class="sp-actions">
         <button class="btn ghost sp-login-btn">Log in</button>
         <button class="btn sp-signup-btn">Sign up</button>
@@ -1123,67 +1256,95 @@ function refreshSaveProgressBoxDom(box){
   }
 }
 
-/* Called once, right when recordSession() finishes a test while a user is
-   logged in — this is what makes saving automatic instead of requiring the
-   old manual "Save your progress" click. It updates the `session` object
-   in place; since showResult()'s save-progress box holds a reference to that
-   exact same object, re-rendering that one box (if it's still on screen)
-   picks the change up with no extra bookkeeping. */
-async function autoSyncSessionToCloud(session){
-  session._syncing = true;
-  refreshSaveProgressBoxForSession(session.id);
-  const ok = await syncSessionToCloud(session);
-  session._syncing = false;
-  if(ok){
-    session._synced = true;
-    session._syncFailed = false;
-    // keep the sidebar's synced-session count accurate without a full reload
-    if(accountSyncStatus.state === 'loaded') accountSyncStatus.count += 1;
-    renderAuthBox();
-  } else {
-    session._syncFailed = true;
-  }
-  refreshSaveProgressBoxForSession(session.id);
-}
-function refreshSaveProgressBoxForSession(sessionId){
-  const box = document.querySelector(`.save-progress-box[data-session-id="${sessionId}"]`);
-  if(box) refreshSaveProgressBoxDom(box);
-}
+/* Saves a completed session to the cloud in two ordered, awaited steps —
+   the session row, then that session's individual mistakes — and only
+   renders a final "Saved to your account" once BOTH have actually finished
+   (not just the session row). Each step is retried independently: if the
+   session row already succeeded on a prior attempt, only the mistakes step
+   re-runs on retry, and vice versa.
 
+   Race safety: `userId` is captured ONCE, right here, before any await. Every
+   network call in this function uses that captured value — never a later
+   read of the live `currentUser` — so if the user logs out or switches
+   accounts while this is in flight, the data already sent is unaffected, and
+   nothing below re-attributes the result to whichever account happens to be
+   active by the time the response comes back (that guard is the `if(box._
+   staleForAccount)` check after each await). */
 async function doSaveProgress(box){
   const sessionRecord = box._sessionRecord;
+  const forUser = currentUser;
+  if(!forUser) return; // logged out before this attempt could even start
+  const userId = forUser.id;
+  const stillCurrent = ()=> currentUser && currentUser.id === userId;
+
+  // Only one save may run for a given box at a time — otherwise a second,
+  // later invocation (e.g. triggered by refreshSaveProgressBoxDom() re-running
+  // after an account switch) could race the first one's writes to the same
+  // `sessionRecord` flags.
+  if(box._saving) return;
+  box._saving = true;
   const btn = box.querySelector('.sp-save-btn');
   if(btn){ btn.disabled = true; btn.textContent = 'Saving…'; }
-  sessionRecord._syncFailed = false;
-  const ok = await syncSessionToCloud(sessionRecord);
-  if(ok){
-    sessionRecord._synced = true;
-    sessionRecord._syncFailed = false;
-    refreshSaveProgressBoxDom(box);
-    // this session is now also part of the account's cloud-backed progress —
-    // keep the sidebar's synced-session count accurate without a full reload.
-    if(accountSyncStatus.state === 'loaded') accountSyncStatus.count += 1;
-    renderAuthBox();
-  } else {
-    sessionRecord._syncFailed = true;
-    if(btn){
-      btn.disabled = false;
-      btn.textContent = 'Retry save';
+
+  try{
+    if(!sessionRecord._synced){
+      const ok = await syncSessionToCloud(sessionRecord, userId);
+      if(!stillCurrent()){
+        // The account changed while this save was in flight. The row (if it
+        // saved) was written under the correct captured `userId` regardless —
+        // that part is safe — but the account that's active NOW has nothing
+        // to do with this result, so stop here rather than updating this
+        // account's sidebar count or re-rendering this box as if it were
+        // this account's save.
+        return;
+      }
+      if(!ok){
+        sessionRecord._syncFailed = true;
+        refreshSaveProgressBoxDom(box);
+        return;
+      }
+      sessionRecord._synced = true;
+      sessionRecord._syncFailed = false;
+      // this session is now also part of the account's cloud-backed progress —
+      // keep the sidebar's synced-session count accurate without a full reload.
+      if(accountSyncStatus.state === 'loaded') accountSyncStatus.count += 1;
+      renderAuthBox();
     }
+
+    const hasMistakes = sessionRecord._rawMistakes && sessionRecord._rawMistakes.length;
+    if(!hasMistakes){
+      sessionRecord._mistakesSynced = true;
+      sessionRecord._mistakesSyncFailed = false;
+    } else if(!sessionRecord._mistakesSynced){
+      const mistakesOk = await syncSessionMistakesToCloud(sessionRecord, userId);
+      if(!stillCurrent()) return; // same reasoning as above
+      sessionRecord._mistakesSyncFailed = !mistakesOk;
+    }
+    if(stillCurrent()) refreshSaveProgressBoxDom(box);
+  } finally {
+    box._saving = false;
   }
 }
 
-async function syncSessionToCloud(sessionRecord, opts){
-  opts = opts || {};
-  if(!currentUser){ return false; }
+/* Every function in this cloud-sync block takes an explicit `userId` captured
+   by its caller BEFORE the async work starts, and uses only that captured
+   value — never the live `currentUser` — for the network call and for
+   deciding whether to apply the result afterward. `currentUser` can change
+   (login/logout/switch) while any of these awaits are in flight; without an
+   explicit snapshot, code that read `currentUser.id` again after an await
+   could silently attribute Account A's save to whichever account happens to
+   be active by the time the response arrives. */
+async function syncSessionToCloud(sessionRecord, userId){
+  if(!userId){ return false; }
   try{
     // upsert (not insert) on the primary key so accidentally saving the same
     // session twice — e.g. a double click, or a retry after a flaky network
     // error — updates the same row instead of erroring or duplicating it.
     const { error } = await supabaseClient.from(CLOUD_TABLE).upsert({
       id: sessionRecord.id,
-      user_id: currentUser.id,
+      user_id: userId,
       mode: sessionRecord.mode,
+      lang: sessionRecord.lang || 'en',
       wpm: sessionRecord.wpm,
       gross_wpm: sessionRecord.grossWpm,
       accuracy: sessionRecord.accuracy,
@@ -1200,46 +1361,91 @@ async function syncSessionToCloud(sessionRecord, opts){
     if(error) throw error;
     return true;
   } catch(e){
-    console.warn('Cloud sync failed:', e);
-    // silent:true is used by background/bulk callers (auto-save-on-finish,
-    // the multi-session backfill below) which report failures on their own
-    // terms instead of popping an alert per session.
-    if(!opts.silent) alert("Couldn't save to your account. Please check your connection and try again.");
+    // No alert() here on purpose: this runs automatically after every single
+    // completed test, so a flaky connection would otherwise pop up a dialog
+    // per session. The save-progress box already shows a clear "couldn't
+    // reach the server" message with a Retry button — that's the non-intrusive
+    // way to surface this (spec §25).
+    console.warn('Cloud session sync failed:', e);
     return false;
   }
 }
 
-/* Explicit, opt-in bulk upload of whatever sessions are sitting in this
-   browser's local storage (e.g. tests completed before this account existed,
-   or while offline) — the user must click a button for this to run. This is
-   deliberately NOT automatic: silently merging one device's anonymous/local
-   history into an account on every login is exactly the data-mixing this
-   app's login/cloud-sync design avoids (see loadCloudSessionsForCurrentUser).
-   Auto-save (autoSyncSessionToCloud) only ever covers sessions completed
-   *while* logged in; this covers everything that came before, on request. */
-async function backfillLocalSessionsToAccount(){
-  if(!currentUser) return;
-  let localSessions = [];
+/* Uploads one completed session's individual mistakes (word/expected-key/
+   typed-key) so Mistake Bank and weak-key stats reconstruct identically on
+   another device. Called (and awaited) by doSaveProgress before the box is
+   allowed to show "Saved to your account" — a failure here surfaces its own
+   retry action instead of being silently swallowed.
+   Idempotent by design: each row's id is deterministically derived from the
+   session id + that mistake's character index within the session, so
+   retrying this exact upload (network blip, user clicks Retry) re-sends the
+   same row ids and Supabase overwrites them in place — it can never create
+   duplicate mistake rows for the same session. */
+async function syncSessionMistakesToCloud(sessionRecord, userId){
+  if(!userId){ return false; }
+  const rows = (sessionRecord._rawMistakes||[]).map(m=>({
+    id: `${sessionRecord.id}-${m.index}`,
+    user_id: userId,
+    session_id: sessionRecord.id,
+    lang: sessionRecord.lang || 'en',
+    word: (m.word||'').toLowerCase(),
+    expected_key: m.expected || null,
+    typed_key: m.typed || null,
+    mistake_type: 'substitution',
+    created_at: sessionRecord.createdAt
+  })).filter(r=> r.word || r.expected_key);
+  if(!rows.length){ sessionRecord._mistakesSynced = true; return true; }
   try{
-    const r = await window.storage.get('sessions', false);
-    if(r && r.value) localSessions = JSON.parse(r.value);
-  }catch(e){ /* nothing saved locally on this device yet */ }
-  if(!localSessions.length){
-    alert("No older sessions were found saved on this device to upload.");
-    return;
+    const { error } = await supabaseClient.from(MISTAKES_TABLE).upsert(rows, { onConflict: 'id' });
+    if(error) throw error;
+    sessionRecord._mistakesSynced = true;
+    return true;
+  }catch(e){
+    console.warn('Cloud mistake sync failed (Mistake Bank may be incomplete on other devices until this retries):', e);
+    return false;
   }
-  if(!confirm(`Upload ${localSessions.length} session(s) saved on this device to your account (${currentUser.email})?`)) return;
-  const btn = document.getElementById('backfillBtn');
-  if(btn){ btn.disabled = true; btn.textContent = 'Uploading…'; }
-  let okCount = 0;
-  for(const s of localSessions){
-    const ok = await syncSessionToCloud(s, {silent:true});
-    if(ok) okCount++;
+}
+
+/* =========================================================================
+   CUSTOM DRILLS — cloud sync for logged-in accounts (spec §16). Anonymous
+   drills stay local (see ACCOUNT_ONLY_KEYS above); logged-in drills live in
+   typing_custom_drills and are downloaded fresh on every login exactly like
+   sessions/mistakes above.
+   ========================================================================= */
+async function saveCustomDrillToCloud(drill, userId){
+  try{
+    const { error } = await supabaseClient.from(DRILLS_TABLE).upsert({
+      id: drill.id,
+      user_id: userId,
+      name: drill.name,
+      type: drill.type,
+      keys: drill.keys || '',
+      finger: drill.finger || 'homerow',
+      pattern: drill.pattern || '',
+      words: drill.words || '',
+      difficulty: drill.difficulty || 'medium',
+      duration: drill.duration || 0,
+      reps: drill.reps || 3,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'id' });
+    if(error) throw error;
+    return true;
+  }catch(e){
+    console.warn('Cloud drill save failed:', e);
+    alert("Couldn't save this drill to your account. It hasn't been saved — check your connection and try again.");
+    return false;
   }
-  alert(okCount === localSessions.length
-    ? `Uploaded all ${okCount} session(s) to your account.`
-    : `Uploaded ${okCount} of ${localSessions.length} session(s). Some failed — check your connection and try again.`);
-  await loadCloudSessionsForCurrentUser(); // refresh the dashboard/progress with the newly uploaded rows included
+}
+async function deleteCustomDrillFromCloud(drillId, userId){
+  try{
+    const { error } = await supabaseClient.from(DRILLS_TABLE).delete().eq('id', drillId).eq('user_id', userId);
+    if(error) throw error;
+    return true;
+  }catch(e){
+    console.warn('Cloud drill delete failed:', e);
+    alert("Couldn't delete this drill from your account — check your connection and try again.");
+    return false;
+  }
 }
 </script>
 
@@ -1287,10 +1493,66 @@ if(!window.storage){
 /* =========================================================================
    STORAGE LAYER
    ========================================================================= */
-const STORE_KEYS = ['sessions','mistakeWords','weakKeys','settings','xp','streakData','achievementsUnlocked','recentContent','wordHistory','customDrills','paragraphHistory','seenContent'];
+const STORE_KEYS = ['sessions','mistakeWords','weakKeys','settings','xp','streakData','achievementsUnlocked','recentContent','wordHistory','customDrills','paragraphHistory','seenContent','mistakeWordsHi','weakKeysHi'];
 const DEFAULT_SETTINGS = {sound:true, keyboard:true, caret:'block', fontSize:21, dailyGoal:10,
-  fontFamily:'mono', lineHeight:1.9, letterSpacing:'.01em', textWidth:820};
-let DB = { sessions: [], mistakeWords: {}, weakKeys: {}, settings: Object.assign({}, DEFAULT_SETTINGS), xp: 0, streakData: {count:0,best:0,last:null}, achievementsUnlocked: [],
+  fontFamily:'mono', lineHeight:1.9, letterSpacing:'.01em', textWidth:820, lang:'en', theme:'dark'};
+
+/* =========================================================================
+   LANGUAGE + THEME — the whole app switches between English and Hindi
+   (Kruti Dev 010) via one toggle in the sidebar, and between dark/light
+   theme via another. Neither ever wipes or mixes the other language's data.
+   ========================================================================= */
+const I18N = {
+  en: {
+    'nav.dashboard':'Dashboard', 'nav.practice':'Practice', 'nav.drillbuilder':'Drill Builder',
+    'nav.highcourt':'High Court Coach', 'nav.wpmtest':'WPM Test', 'nav.mistakes':'Mistake Bank',
+    'nav.progress':'Progress', 'nav.workout':'Daily Workout', 'nav.achievements':'Achievements', 'nav.settings':'Settings',
+    'page.dashboard.title':'Dashboard', 'page.dashboard.sub':'Your typing performance at a glance.',
+    'page.practice.title':'Practice', 'page.practice.sub':'Choose a training mode. The coach will target your weak areas automatically.',
+    'page.highcourt.title':'High Court Stenographer Coach', 'page.highcourt.sub':'Court-style speed, accuracy, legal vocabulary, dictation and transcription — with adaptive coaching.',
+    'page.wpmtest.title':'WPM Test', 'page.wpmtest.sub':'Standard timed typing-speed test. WPM = (correct characters ÷ 5) ÷ minutes.',
+    'page.mistakes.title':'Mistake Bank', 'page.mistakes.sub':"Every word you've mistyped, tracked over time. Drill the worst offenders directly.",
+    'page.progress.title':'Progress', 'page.progress.sub':'Track your improvement over time.',
+    'page.achievements.title':'Achievements', 'page.achievements.sub':'Gamification is secondary — but progress deserves recognition.',
+    'page.settings.title':'Settings',
+    'stage.hint':'Start typing — the exercise begins automatically. Backspace corrects mistakes.',
+    'stage.restart':'↻ Restart', 'stage.skip':'→ Skip', 'stage.krutiNote':'This tool displays Kruti Dev 010 encoded text. For correct typing, set your OS keyboard layout to "Kruti Dev / Remington Gail", then type normally.'
+  },
+  hi: {
+    'nav.dashboard':'डैशबोर्ड', 'nav.practice':'अभ्यास', 'nav.drillbuilder':'Drill Builder',
+    'nav.highcourt':'न्यायालय टाइपिंग', 'nav.wpmtest':'WPM टेस्ट', 'nav.mistakes':'गलतियाँ बैंक',
+    'nav.progress':'प्रगति', 'nav.workout':'Daily Workout', 'nav.achievements':'उपलब्धियाँ', 'nav.settings':'सेटिंग्स',
+    'page.dashboard.title':'डैशबोर्ड', 'page.dashboard.sub':'आपकी हिंदी टाइपिंग की समग्र प्रगति एक नज़र में।',
+    'page.practice.title':'अभ्यास', 'page.practice.sub':'एक अभ्यास मोड चुनें — कोच आपकी कमजोरियों को अपने आप लक्षित करेगा।',
+    'page.highcourt.title':'न्यायालय टाइपिंग (High Court Mode)', 'page.highcourt.sub':'अदालती भाषा, कानूनी शब्दावली और लंबे परिच्छेदों का अभ्यास — स्टेनोग्राफर परीक्षा शैली में।',
+    'page.wpmtest.title':'WPM टेस्ट', 'page.wpmtest.sub':'मानक समयबद्ध टाइपिंग-गति परीक्षण। WPM = (सही अक्षर ÷ 5) ÷ मिनट।',
+    'page.mistakes.title':'गलतियाँ बैंक', 'page.mistakes.sub':'आपके द्वारा बार-बार गलत टाइप किए गए शब्द — इन्हीं पर अभ्यास सबसे ज़्यादा असर करता है।',
+    'page.progress.title':'प्रगति', 'page.progress.sub':'समय के साथ आपकी गति और शुद्धता का रुझान।',
+    'page.achievements.title':'उपलब्धियाँ', 'page.achievements.sub':'अभ्यास जारी रखें और बैज अनलॉक करें।',
+    'page.settings.title':'सेटिंग्स',
+    'stage.hint':'टाइप करना शुरू करें — अभ्यास अपने आप शुरू हो जाएगा। Backspace से गलती ठीक करें।',
+    'stage.restart':'↻ फिर से शुरू करें', 'stage.skip':'→ छोड़ें', 'stage.krutiNote':'यह टूल Kruti Dev 010 एन्कोडेड टेक्स्ट दिखा रहा है। सही टाइपिंग के लिए अपने कीबोर्ड लेआउट को "Kruti Dev / Remington Gail" पर सेट करें, फिर सामान्य रूप से टाइप करें।'
+  }
+};
+function t(key){
+  const lang = (DB.settings && DB.settings.lang) || 'en';
+  return (I18N[lang] && I18N[lang][key]) || I18N.en[key] || key;
+}
+function applyTranslations(){
+  document.querySelectorAll('[data-t]').forEach(el=>{ el.textContent = t(el.dataset.t); });
+}
+function applyLangTheme(){
+  const lang = DB.settings.lang || 'en';
+  const theme = DB.settings.theme || 'dark';
+  document.documentElement.setAttribute('data-lang', lang);
+  document.documentElement.setAttribute('data-theme', theme);
+  const themeBtn = document.getElementById('themeToggleBtn');
+  if(themeBtn) themeBtn.textContent = theme==='dark' ? '🌙' : '☀️';
+  document.querySelectorAll('#langSwitch button').forEach(b=> b.classList.toggle('active', b.dataset.lang===lang));
+  applyTranslations();
+}
+
+let DB = { sessions: [], mistakeWords: {}, weakKeys: {}, mistakeWordsHi: {}, weakKeysHi: {}, settings: Object.assign({}, DEFAULT_SETTINGS), xp: 0, streakData: {count:0,best:0,last:null}, achievementsUnlocked: [],
   recentContent: { topic:[], pattern:[], symbol:[], paragraphSigs:[], muscleRound:{}, sentence:[], punctuation:[] }, wordHistory: {}, customDrills: [], paragraphHistory: {}, seenContent: {} };
 
 async function loadAll(){
@@ -1304,6 +1566,8 @@ async function loadAll(){
   DB.recentContent = Object.assign({ topic:[], pattern:[], symbol:[], paragraphSigs:[], muscleRound:{}, sentence:[], punctuation:[] }, DB.recentContent||{});
   DB.wordHistory = DB.wordHistory || {};
   DB.customDrills = DB.customDrills || [];
+  DB.mistakeWordsHi = DB.mistakeWordsHi || {};
+  DB.weakKeysHi = DB.weakKeysHi || {};
   DB.paragraphHistory = DB.paragraphHistory || {};
   DB.seenContent = DB.seenContent || {};
 }
@@ -1318,7 +1582,7 @@ async function loadAll(){
    settings, content-variety history, custom drills, etc.) aren't
    account-specific and keep saving locally regardless of login state.
    ========================================================================= */
-const ACCOUNT_ONLY_KEYS = new Set(['sessions','mistakeWords','weakKeys','xp','streakData','achievementsUnlocked']);
+const ACCOUNT_ONLY_KEYS = new Set(['sessions','mistakeWords','weakKeys','mistakeWordsHi','weakKeysHi','xp','streakData','achievementsUnlocked','customDrills']);
 async function save(key){
   if(typeof currentUser !== 'undefined' && currentUser && ACCOUNT_ONLY_KEYS.has(key)) return;
   try{
@@ -1616,6 +1880,296 @@ const PARAGRAPH_LIBRARY = [
     text:"Procrastination is frequently misunderstood as simple laziness, a straightforward failure of willpower or discipline that a person could presumably overcome if they simply tried harder or cared more about the task at hand. Research into the actual psychology behind procrastination paints a rather different, more nuanced picture, one centered less on laziness itself and considerably more on emotional regulation, specifically the very human tendency to avoid tasks that trigger uncomfortable feelings such as anxiety, boredom, or a nagging fear of not performing well enough once the work actually begins. Viewed through this particular lens, procrastination functions less as a scheduling failure and considerably more as an unconscious, short-term coping mechanism, one that provides genuine, immediate emotional relief by avoiding an uncomfortable task, even though it reliably creates significantly greater stress later, once an approaching deadline makes further avoidance genuinely impossible to sustain. This reframing helps explain why simple, straightforward advice such as \"just start\" often fails to work reliably in practice, since it addresses only the surface behavior itself while leaving the underlying emotional discomfort completely unaddressed and unresolved. More effective strategies tend to directly target that underlying discomfort instead. Breaking a large, genuinely intimidating task into much smaller, more clearly manageable pieces reduces the anxiety specifically associated with an overwhelming, ill-defined task, making the very first concrete step feel considerably more approachable and considerably less threatening than the intimidating whole. Deliberately lowering the standard for a difficult first attempt, giving explicit permission to produce something genuinely rough or clearly imperfect at first, can also meaningfully reduce the specific fear of inadequate performance that frequently drives avoidance in the first place, since a rough, imperfect first draft carries considerably lower emotional stakes than an attempt that must somehow be excellent from the very first sentence. Understanding procrastination this way does not make the underlying difficulty of the task magically disappear, but it does shift the practical, meaningful focus away from ineffective willpower alone and toward the specific emotional obstacles that were genuinely driving the avoidance behavior all along, a shift that considerably more people find both realistic and genuinely sustainable to work with over the longer term, compared to simply being told to try harder. It is also worth noting that not all procrastination stems from anxiety about performance; sometimes a delayed task simply reflects a genuine, unaddressed mismatch between how the task is currently structured and how a particular person's mind tends to engage most naturally with work, which is why experimenting with different approaches, working somewhere new, changing the time of day a task is attempted, or pairing a tedious task with a more enjoyable one, occasionally succeeds where willpower-based advice alone has repeatedly failed."
   },
 ];
+
+/* =========================================================================
+   HINDI (KRUTI DEV 010) CONTENT SYSTEM
+   Ported verbatim from the original Kruti Dev typing app, namespaced with an
+   HI_ / hi prefix throughout so nothing here can collide with or overwrite
+   any English content, function, or variable name.
+   ========================================================================= */
+
+/* ---- exact Unicode -> Kruti Dev 010 glyph conversion (preserved exactly) ---- */
+function unicodeToKruti(unicode_substring){
+  let s = unicode_substring;
+  const A1 = ["‘","’","“","”","(",")","{","}","=","।","?","-","µ","॰",",",".","् ",
+    "०","१","२","३","४","५","६","७","८","९","x",
+    "फ़्","क़","ख़","ग़","ज़्","ज़","ड़","ढ़","फ़","य़","ऱ","ऩ",
+    "त्त्","त्त","क्त","दृ","कृ",
+    "ह्न","ह्य","हृ","ह्म","ह्र","ह्","द्द","क्ष्","क्ष","त्र्","त्र","ज्ञ",
+    "छ्य","ट्य","ठ्य","ड्य","ढ्य","द्य","द्व",
+    "श्र","ट्र","ड्र","ढ्र","छ्र","क्र","फ्र","द्र","प्र","ग्र","रु","रू",
+    "्र",
+    "ओ","औ","आ","अ","ई","इ","उ","ऊ","ऐ","ए","ऋ",
+    "क्","क","क्क","ख्","ख","ग्","ग","घ्","घ","ङ",
+    "चै","च्","च","छ","ज्","ज","झ्","झ","ञ",
+    "ट्ट","ट्ठ","ट","ठ","ड्ड","ड्ढ","ड","ढ","ण्","ण",
+    "त्","त","थ्","थ","द्ध","द","ध्","ध","न्","न",
+    "प्","प","फ्","फ","ब्","ब","भ्","भ","म्","म",
+    "य्","य","र","ल्","ल","ळ","व्","व",
+    "श्","श","ष्","ष","स्","स","ह",
+    "ऑ","ॉ","ो","ौ","ा","ी","ु","ू","ृ","े","ै",
+    "ं","ँ","ः","ॅ","ऽ","् ","्"];
+  const A2 = ["^","*","Þ","ß","¼","½","¿","À","¾","A","\\","&","&","Œ","]","-","~ ",
+    "å","ƒ","„","…","†","‡","ˆ","‰","Š","‹","Û",
+    "¶","d","[k","x","T","t","M+","<+","Q",";","j","u",
+    "Ù","Ùk","Dr","–","—",
+    "à","á","â","ã","ºz","º","í","{","{k","«","=","K",
+    "Nî","Vî","Bî","Mî","<î","|","}",
+    "J","Vª","Mª","<ªª","Nª","Ø","Ý","æ","ç","xz","#",":",
+    "z",
+    "vks","vkS","vk","v","bZ","b","m","Å",",s",",","_",
+    "D","d","ô","[","[k","X","x","?","?k","³",
+    "pkS","P","p","N","T","t","÷",">","¥",
+    "ê","ë","V","B","ì","ï","M","<",".",".k",
+    "R","r","F","Fk",")","n","/","/k","U","u",
+    "I","i","¶","Q","C","c","H","Hk","E","e",
+    "¸",";","j","Y","y","G","O","o",
+    "'","'k","\"","\"k","L","l","g",
+    "v‚","‚","ks","kS","k","h","q","w","`","s","S",
+    "a","¡","%","W","·","~ ","~"];
+  s = s.split("ि").join("f");
+  for(let i=0;i<A1.length;i++){ s = s.split(A1[i]).join(A2[i]); }
+  s = " " + s + " ";
+  let pos = s.indexOf("f");
+  while(pos !== -1){
+    s = s.slice(0,pos-1) + s[pos] + s[pos-1] + s.slice(pos+1);
+    pos = s.indexOf("f", pos+1);
+  }
+  s = s.trim();
+  s = " " + s + " ";
+  const matras = ["‚","ks","kS","k","h","q","w","`","s","S","a","¡","%","W","·","~ ","~"];
+  let posr = s.indexOf("j~");
+  while(posr !== -1){
+    s = s.slice(0,posr) + s.slice(posr+2);
+    if(matras.includes(s[posr+1])){ s = s.slice(0,posr+2) + "Z" + s.slice(posr+2); }
+    else{ s = s.slice(0,posr+1) + "Z" + s.slice(posr+1); }
+    posr = s.indexOf("j~");
+  }
+  return s.trim();
+}
+function u2k(t){ return unicodeToKruti(t); }
+function hi_u2k(t){ return unicodeToKruti(t); }
+
+/* ---- Hindi content banks ---- */
+const HI_COMMON_WORDS = ["यह","वह","है","हैं","था","थी","थे","और","या","लेकिन","क्योंकि","अगर","तो","कि","जो","क्या","कौन","कब","कहाँ","कैसे","क्यों","आज","कल","अभी","फिर","यहाँ","वहाँ","सब","कुछ","बहुत","थोड़ा","अच्छा","बुरा","बड़ा","छोटा","नया","पुराना","समय","दिन","रात","सुबह","शाम","घर","बाहर","अंदर","ऊपर","नीचे","आगे","पीछे","साथ","बिना","लिए","द्वारा","काम","पानी","हवा","धरती","आकाश","परिवार","दोस्त","शहर","गाँव","स्कूल","किताब","भाषा","संगीत","खेल","स्वास्थ्य","भोजन","यात्रा","सपना","विचार","भविष्य",
+"मनुष्य","जीवन","प्रकृति","धरती","सूरज","चाँद","तारे","बादल","बारिश","सर्दी","गर्मी","बसंत","पतझड़","हवा","आग","मिट्टी","पत्थर","पेड़","पौधा","फूल","फल","सब्जी","अनाज","खेत","किसान","मजदूर","व्यापारी","शिक्षक","विद्यार्थी","डॉक्टर","इंजीनियर","वैज्ञानिक","लेखक","कलाकार","पत्रकार","अधिकारी","कर्मचारी","नौकरी","व्यवसाय","उद्योग","बाज़ार","दुकान","पैसा","बैंक","खाता","बचत","निवेश","संपत्ति","गरीबी","अमीरी","समाज","संस्कृति","परंपरा","त्योहार","रीति","धर्म","पूजा","मंदिर","मस्जिद","गिरजाघर","गुरुद्वारा","आस्था","विश्वास","ईमानदारी","सच्चाई","झूठ","न्याय","अन्याय","स्वतंत्रता","समानता","बंधुत्व","एकता","अखंडता","राष्ट्र","देश","राज्य","जिला","गाँव","शहर","सड़क","पुल","रेल","हवाई जहाज़","जहाज़","बस","कार","साइकिल","मोबाइल","कंप्यूटर","इंटरनेट","टेलीविज़न","समाचार","पत्र","चिट्ठी","संदेश","भाषण","वार्तालाप","चर्चा","बहस","सलाह","निर्णय","योजना","लक्ष्य","सफलता","असफलता","परिश्रम","आलस्य","धैर्य","साहस","भय","खुशी","दुःख","क्रोध","शांति","प्रेम","घृणा","सम्मान","अपमान","विनम्रता","अहंकार","ज्ञान","अज्ञान","शिक्षा","अनुशासन","स्वास्थ्य","बीमारी","इलाज","औषधि","अस्पताल","चिकित्सक","नर्स","रोगी","व्यायाम","योग","आहार","पोषण","स्वच्छता","पर्यावरण","प्रदूषण","संरक्षण","जल","वायु","वन","वन्यजीव","जलवायु","ऊर्जा","बिजली","सौर","प्राकृतिक","संसाधन","खनिज","कृषि","सिंचाई","फसल","बीज","खाद","उत्पादन","निर्यात","आयात","अर्थव्यवस्था","बजट","कर","राजस्व","विकास","प्रगति","आधुनिकता","परिवर्तन","अनुसंधान","आविष्कार","तकनीक","विज्ञान","गणित","इतिहास","भूगोल","राजनीति","प्रशासन","कानून","संविधान","अधिकार","कर्तव्य","चुनाव","मतदान","सरकार","संसद","विधानसभा","मंत्री","प्रधानमंत्री","राष्ट्रपति","सेना","सुरक्षा","रक्षा","सीमा","शांति","युद्ध","संधि","सहयोग","मित्रता","पड़ोसी","विश्व","अंतरराष्ट्रीय"];
+
+
+const HI_LEGAL_WORDS = ["याचिकाकर्ता","प्रतिवादी","अधिवक्ता","न्यायाधीश","उच्च न्यायालय","अपील","आदेश","निर्णय","संविधान","धारा","अधिनियम","हलफनामा","गवाह","साक्ष्य","अभियुक्त","वकील","कार्यवाही","सुनवाई","फैसला","दंड","कानून","अदालत","न्यायालय","संहिता","नियम","विधान","सरकार","आवेदन","जमानत","गिरफ्तारी","पुलिस","थाना","रिपोर्ट","जांच","अपराध","दोषी","निर्दोष","सजा","जुर्माना","संपत्ति","विवाद","समझौता","पंजीकरण","दस्तावेज़","प्रमाण पत्र","स्थगन","तारीख","सूचना","नोटिस","पेशी","रजिस्ट्रार","पीठ","खंडपीठ","न्याय","अधिकार","कर्तव्य","स्वतंत्रता","समानता","याचिका","रिट","वरिष्ठ अधिवक्ता","महाधिवक्ता","अभियोजक","सरकारी वकील","जिला न्यायालय","सत्र न्यायालय","सर्वोच्च न्यायालय","आयोग","अनुच्छेद","प्रावधान","परिशिष्ट","अनुबंध",
+"वाद","प्रतिवाद","पक्षकार","प्रतिपक्ष","वादी","मुकदमा","मामला","प्रकरण","सम्मन","वारंट","इस्तगासा","परिवाद","शिकायत","एफ.आई.आर.","चालान","बयान","बचाव पक्ष","अभियोजन पक्ष","गवाही","जिरह","पुनरीक्षण","पुनर्विचार","पुनर्स्थापन","निषेधाज्ञा","स्थायी निषेधाज्ञा","अंतरिम आदेश","कुर्की","नीलामी","वसीयत","उत्तराधिकार","संरक्षकता","भरण-पोषण","तलाक","विवाह विच्छेद","हिरासत","दहेज","भ्रष्टाचार","रिश्वत","गबन","धोखाधड़ी","जालसाजी","अतिक्रमण","मानहानि","लापरवाही","क्षतिपूर्ति","हर्जाना","बीमा","पट्टा","किरायेदार","मकान मालिक","बंधक","ऋण","देनदार","लेनदार","दिवालियापन","कंपनी","साझेदारी","श्रम कानून","औद्योगिक विवाद","न्यूनतम मजदूरी","सेवानिवृत्ति","पेंशन","सूचना का अधिकार","लोक अदालत","मध्यस्थता","पंचाट","समन्वय पीठ","एकल पीठ","द्विसदस्यीय पीठ","न्यायिक हिरासत","पुलिस हिरासत","परिवीक्षा","दया याचिका","राष्ट्रपति","राज्यपाल","महान्यायवादी","लोक अभियोजक","बार काउंसिल","बार एसोसिएशन"];
+
+
+const HI_PARAGRAPH_LIBRARY_RAW = [
+{category:"टेक्नोलॉजी", text:"आधुनिक तकनीक ने हमारे जीने के तरीके को पूरी तरह बदल दिया है। स्मार्टफोन, लैपटॉप और स्मार्ट उपकरणों ने रोजमर्रा के कामों को पहले से कहीं अधिक सरल बना दिया है। जो सूचना पाने में पहले घंटों लगते थे, वह अब कुछ ही सेकंड में उपलब्ध हो जाती है।"},
+{category:"टेक्नोलॉजी", text:"पिछले दो दशकों में तकनीकी विकास ने उद्योग जगत की पूरी तस्वीर बदल दी है। पहले जहां कारखानों में अधिकतर काम हाथों से होता था, वहीं आज स्वचालित मशीनें और रोबोट अनेक कार्य कुशलता से पूरे कर रही हैं। इस बदलाव ने उत्पादन क्षमता को कई गुना बढ़ाया है, लेकिन साथ ही रोजगार के स्वरूप में भी बड़ा परिवर्तन ला दिया है। आज कर्मचारियों को नई तकनीकों के साथ तालमेल बिठाने के लिए निरंतर सीखते रहना जरूरी हो गया है।"},
+{category:"टेक्नोलॉजी", text:"5G नेटवर्क के आगमन से इंटरनेट की गति में क्रांतिकारी सुधार हुआ है। अब वीडियो कॉल, ऑनलाइन गेमिंग और भारी फाइलों का आदान-प्रदान बिना किसी रुकावट के संभव हो गया है। स्मार्ट सिटी परियोजनाओं में भी इस तकनीक का उपयोग यातायात प्रबंधन और सार्वजनिक सुरक्षा को बेहतर बनाने के लिए किया जा रहा है। आने वाले वर्षों में यह तकनीक स्वास्थ्य सेवा और शिक्षा क्षेत्र में भी बड़े बदलाव लाएगी।"},
+{category:"टेक्नोलॉजी", text:"डिजिटल परिवर्तन केवल बड़ी कंपनियों तक सीमित नहीं रहा, बल्कि छोटे व्यापारी भी अब इसका पूरा लाभ उठा रहे हैं। ऑनलाइन दुकानें, डिजिटल भुगतान और सोशल मीडिया मार्केटिंग के माध्यम से एक छोटा दुकानदार भी अपने ग्राहकों की संख्या पूरे शहर से बढ़ाकर पूरे देश तक ले जा सकता है। क्लाउड कंप्यूटिंग ने डेटा संग्रहण को इतना सस्ता और सुलभ बना दिया है कि अब स्टार्टअप कंपनियां बिना भारी निवेश के अपना व्यवसाय शुरू कर सकती हैं। इसके अतिरिक्त, बिग डेटा एनालिटिक्स के माध्यम से कंपनियां अपने ग्राहकों की पसंद-नापसंद को गहराई से समझ पा रही हैं, जिससे उत्पादों और सेवाओं को और अधिक व्यक्तिगत बनाया जा सकता है। हालांकि इस तीव्र डिजिटलीकरण के साथ डेटा सुरक्षा और गोपनीयता से जुड़े प्रश्न भी उतनी ही गंभीरता से उठ रहे हैं, जिनका समाधान ढूंढना आने वाले समय की सबसे बड़ी चुनौती होगी।"},
+{category:"कृत्रिम बुद्धिमत्ता", text:"कृत्रिम बुद्धिमत्ता अर्थात आर्टिफिशियल इंटेलिजेंस आज हर क्षेत्र में अपनी उपस्थिति दर्ज करा रही है। चाहे वह स्वास्थ्य सेवा हो, बैंकिंग हो या शिक्षा, हर जगह एआई आधारित उपकरण मानव कार्यों को तेज़ और सटीक बनाने में मदद कर रहे हैं। मशीन लर्निंग की मदद से कंप्यूटर अब बड़ी मात्रा में डेटा का विश्लेषण करके स्वयं निर्णय लेने में सक्षम हो रहे हैं।"},
+{category:"कृत्रिम बुद्धिमत्ता", text:"चैटबॉट और वर्चुअल सहायक आज ग्राहक सेवा के क्षेत्र में क्रांति ला रहे हैं। ये प्रणालियां चौबीसों घंटे उपलब्ध रहती हैं और ग्राहकों के सामान्य प्रश्नों का तुरंत समाधान कर देती हैं, जिससे मानव कर्मचारियों का समय अधिक जटिल समस्याओं को सुलझाने में लगाया जा सकता है। हालांकि विशेषज्ञों का मानना है कि मशीनें चाहे कितनी भी उन्नत हो जाएं, मानवीय संवेदनशीलता और रचनात्मकता की जगह पूरी तरह नहीं ले सकतीं।"},
+{category:"कृत्रिम बुद्धिमत्ता", text:"कृत्रिम बुद्धिमत्ता के तेजी से बढ़ते उपयोग के साथ नैतिकता और जवाबदेही से जुड़े सवाल भी उतनी ही तेजी से उभर रहे हैं। जब कोई एल्गोरिदम किसी व्यक्ति के लिए ऋण स्वीकृति, नौकरी चयन या चिकित्सा निदान जैसे महत्वपूर्ण निर्णय लेने लगता है, तो यह सुनिश्चित करना बेहद जरूरी हो जाता है कि वह प्रणाली पक्षपात रहित और पारदर्शी हो। दुनिया भर की सरकारें अब कृत्रिम बुद्धिमत्ता के जिम्मेदार उपयोग के लिए नियम-कानून बनाने पर विचार कर रही हैं। शिक्षा जगत में भी यह बहस जारी है कि विद्यार्थियों को इस तकनीक का उपयोग किस सीमा तक सीखने के लिए करना चाहिए। निस्संदेह, आने वाले दशक में कृत्रिम बुद्धिमत्ता मानव सभ्यता की दिशा तय करने में एक निर्णायक भूमिका निभाएगी।"},
+{category:"शिक्षा", text:"शिक्षा व्यवस्था में गुणवत्ता सुधारने के लिए शिक्षकों का प्रशिक्षण उतना ही महत्वपूर्ण है जितना पाठ्यक्रम का आधुनिकीकरण। जब शिक्षक नई शिक्षण पद्धतियों से परिचित होते हैं, तो वे कक्षा में विद्यार्थियों की रुचि बेहतर तरीके से बनाए रख पाते हैं।"},
+{category:"शिक्षा", text:"व्यावहारिक शिक्षा पर जोर देने से विद्यार्थी केवल किताबी ज्ञान तक सीमित नहीं रहते, बल्कि वास्तविक जीवन की समस्याओं को सुलझाने की क्षमता भी विकसित करते हैं। प्रयोगशालाओं, कार्यशालाओं और परियोजना आधारित शिक्षण से यह लक्ष्य आसानी से हासिल किया जा सकता है। ऐसी शिक्षा विद्यार्थियों को आत्मनिर्भर बनाती है और उनके आत्मविश्वास में भी वृद्धि करती है।"},
+{category:"शिक्षा", text:"शिक्षा का उद्देश्य केवल परीक्षा में अच्छे अंक प्राप्त करना नहीं होना चाहिए, बल्कि विद्यार्थी में जिज्ञासा, तार्किक सोच और समस्या समाधान की क्षमता विकसित करना होना चाहिए। दुर्भाग्यवश, आज भी अनेक शिक्षण संस्थानों में रटने की प्रवृत्ति को अत्यधिक बढ़ावा दिया जाता है, जिससे विद्यार्थियों की रचनात्मकता कुंठित हो जाती है। शिक्षकों, अभिभावकों और नीति-निर्माताओं को मिलकर ऐसी शिक्षा प्रणाली विकसित करनी चाहिए जिसमें हर विद्यार्थी की अलग क्षमताओं और रुचियों को पहचाना जाए। खेल, संगीत, कला और विज्ञान जैसे विविध क्षेत्रों में समान अवसर मिलने से ही एक संतुलित और सर्वांगीण शिक्षा व्यवस्था का निर्माण संभव है।"},
+{category:"विज्ञान", text:"विज्ञान की खोजों ने मानव जीवन को अभूतपूर्व रूप से सरल बनाया है। बिजली, टीकाकरण और आधुनिक चिकित्सा जैसी उपलब्धियों ने औसत मानव आयु में उल्लेखनीय वृद्धि की है।"},
+{category:"विज्ञान", text:"अंतरिक्ष विज्ञान में हो रहे नित नए शोध मनुष्य को ब्रह्मांड की गहराइयों को समझने में मदद कर रहे हैं। दूरबीनों और उपग्रहों के माध्यम से वैज्ञानिक अब दूर स्थित आकाशगंगाओं और ग्रहों का अध्ययन बड़ी सटीकता से कर पा रहे हैं। इन खोजों से यह समझने में मदद मिलती है कि पृथ्वी के अलावा कहीं और जीवन की संभावना है या नहीं।"},
+{category:"विज्ञान", text:"जैव प्रौद्योगिकी के क्षेत्र में हो रहे शोध कृषि, चिकित्सा और पर्यावरण संरक्षण तीनों क्षेत्रों में क्रांतिकारी बदलाव ला रहे हैं। जीन संपादन तकनीकों की मदद से वैज्ञानिक अब ऐसी फसलें विकसित कर रहे हैं जो कम पानी में भी बेहतर उपज दे सकें और कीट-रोगों के प्रति प्रतिरोधी हों। चिकित्सा क्षेत्र में भी इन तकनीकों का उपयोग अनुवांशिक बीमारियों के इलाज के लिए किया जा रहा है, जो पहले असाध्य मानी जाती थीं। हालांकि इन तकनीकों के नैतिक पहलुओं पर वैज्ञानिक समुदाय में गहन बहस जारी है, क्योंकि किसी भी नई शक्ति के साथ बड़ी जिम्मेदारी भी जुड़ी होती है।"},
+{category:"पर्यावरण", text:"जलवायु परिवर्तन आज मानवता के सामने खड़ी सबसे बड़ी चुनौतियों में से एक है। बढ़ता तापमान, अनियमित वर्षा और बार-बार आने वाली प्राकृतिक आपदाएं इस बात का स्पष्ट संकेत हैं कि पृथ्वी का पारिस्थितिकी तंत्र गंभीर दबाव में है।"},
+{category:"पर्यावरण", text:"प्लास्टिक प्रदूषण समुद्री जीवन के लिए गंभीर खतरा बन चुका है। हर वर्ष लाखों टन प्लास्टिक कचरा समुद्र में पहुंचता है, जिससे मछलियां और अन्य समुद्री जीव इसे भोजन समझकर निगल लेते हैं। एकल-उपयोग प्लास्टिक के विकल्पों को अपनाकर हम इस समस्या को काफी हद तक कम कर सकते हैं।"},
+{category:"पर्यावरण", text:"पर्यावरण संतुलन बनाए रखने के लिए वनों की भूमिका अत्यंत महत्वपूर्ण है। वृक्ष न केवल कार्बन डाइऑक्साइड को अवशोषित करते हैं बल्कि मिट्टी के कटाव को रोकने, जल चक्र को नियंत्रित रखने और अनेक वन्यजीवों को आश्रय प्रदान करने में भी सहायक होते हैं। बीते कुछ दशकों में औद्योगीकरण और शहरीकरण के कारण वनों का बड़े पैमाने पर विनाश हुआ है, जिसका सीधा असर वर्षा के पैटर्न और तापमान में हो रही असामान्य वृद्धि पर पड़ रहा है। सरकारों, गैर-सरकारी संगठनों और आम नागरिकों को मिलकर वृहद स्तर पर वृक्षारोपण अभियान चलाने होंगे, ताकि आने वाली पीढ़ियों को एक स्वस्थ और संतुलित पर्यावरण विरासत में मिल सके।"},
+{category:"प्रकृति", text:"हिमालय की बर्फ से ढकी चोटियां, घने जंगल और कलकल बहती नदियां प्रकृति की अनुपम सुंदरता का प्रत्यक्ष प्रमाण हैं। इन दृश्यों को देखकर मन स्वतः ही शांति और आनंद से भर जाता है।"},
+{category:"प्रकृति", text:"वर्षा ऋतु में धरती पर छाई हरियाली और मिट्टी की सोंधी खुशबू एक अलग ही अनुभव देती है। यह मौसम किसानों के लिए भी विशेष महत्व रखता है, क्योंकि इसी पर आने वाली फसल की उपज निर्भर करती है।"},
+{category:"व्यवसाय", text:"किसी भी व्यवसाय की सफलता उसके ग्राहकों के भरोसे पर टिकी होती है। गुणवत्तापूर्ण उत्पाद और ईमानदार सेवा प्रदान करने वाली कंपनियां लंबे समय तक बाजार में अपनी पहचान बनाए रखती हैं।"},
+{category:"व्यवसाय", text:"छोटे व्यवसायों के लिए नकदी प्रवाह का सही प्रबंधन अत्यंत आवश्यक होता है। बिना उचित वित्तीय योजना के अच्छे उत्पाद वाला व्यवसाय भी असफल हो सकता है। इसलिए हर उद्यमी को आय-व्यय का बारीकी से हिसाब रखना चाहिए और आवश्यकता से अधिक जोखिम लेने से बचना चाहिए।"},
+{category:"व्यवसाय", text:"आज के प्रतिस्पर्धी बाजार में ब्रांड की पहचान बनाना किसी भी कंपनी के लिए बेहद महत्वपूर्ण हो गया है। केवल अच्छा उत्पाद बनाना ही पर्याप्त नहीं, बल्कि उसे सही तरीके से ग्राहकों तक पहुंचाना भी उतना ही जरूरी है। सोशल मीडिया मार्केटिंग, प्रभावशाली सहयोग और ग्राहक प्रतिक्रिया पर आधारित सुधार आज की मार्केटिंग रणनीति के अभिन्न अंग बन चुके हैं। इसके साथ ही, कंपनियों को अपने कर्मचारियों में भी निवेश करना चाहिए, क्योंकि संतुष्ट और प्रशिक्षित कर्मचारी ही किसी संगठन की सबसे बड़ी पूंजी होते हैं। दीर्घकालिक सफलता के लिए अल्पकालिक लाभ की तुलना में स्थायी संबंध बनाना कहीं अधिक फायदेमंद सिद्ध होता है।"},
+{category:"उत्पादकता", text:"उत्पादकता बढ़ाने के लिए सबसे पहले अपने कार्यों को प्राथमिकता के अनुसार व्यवस्थित करना आवश्यक है। जो लोग महत्वपूर्ण कार्यों को पहले पूरा करते हैं, वे कम समय में अधिक परिणाम प्राप्त कर पाते हैं।"},
+{category:"उत्पादकता", text:"बार-बार ध्यान भटकाने वाली चीजों से दूरी बनाना उत्पादकता बढ़ाने का एक प्रभावी तरीका है। निश्चित समय-सीमा में बिना किसी व्यवधान के काम करने से एकाग्रता बनी रहती है और कार्य की गुणवत्ता भी बेहतर होती है।"},
+{category:"संचार", text:"प्रभावी संचार किसी भी सफल संबंध की नींव होता है, चाहे वह व्यक्तिगत जीवन में हो या व्यावसायिक क्षेत्र में। अपनी बात स्पष्ट रूप से रखना और दूसरे की बात ध्यान से सुनना दोनों ही समान रूप से महत्वपूर्ण हैं।"},
+{category:"संचार", text:"गैर-मौखिक संचार, जैसे शारीरिक भाषा और चेहरे के हाव-भाव, कई बार शब्दों से भी अधिक प्रभावी होते हैं। एक अच्छा वक्ता न केवल अपने शब्दों का चयन सावधानी से करता है, बल्कि अपने श्रोताओं की प्रतिक्रिया को भी बारीकी से समझता है।"},
+{category:"यात्रा", text:"यात्रा करना केवल मनोरंजन का साधन नहीं, बल्कि नई संस्कृतियों और परंपराओं को समझने का एक बेहतरीन अवसर भी है। हर नई जगह की यात्रा हमें कुछ नया सिखाती है और हमारे दृष्टिकोण को व्यापक बनाती है।"},
+{category:"यात्रा", text:"पहाड़ी क्षेत्रों की यात्रा करते समय मौसम की जानकारी और सही तैयारी बेहद जरूरी होती है। अचानक बदलते मौसम और दुर्गम रास्तों के कारण सावधानी बरतना यात्रियों की सुरक्षा के लिए आवश्यक है।"},
+{category:"इतिहास", text:"प्राचीन सभ्यताओं का अध्ययन हमें यह समझने में मदद करता है कि मानव समाज समय के साथ किस प्रकार विकसित हुआ। सिंधु घाटी सभ्यता के अवशेष आज भी उस युग की उन्नत नगर योजना और जल प्रबंधन प्रणाली का प्रमाण देते हैं।"},
+{category:"इतिहास", text:"स्वतंत्रता संग्राम के इतिहास से हमें यह सीख मिलती है कि एकजुटता और दृढ़ संकल्प से बड़ी से बड़ी बाधा को भी पार किया जा सकता है। उस दौर के नेताओं का त्याग और बलिदान आज भी हमें प्रेरित करता है।"},
+{category:"समाज", text:"समाज में समानता स्थापित करने के लिए शिक्षा सबसे प्रभावी उपकरण है। जब हर वर्ग के बच्चों को समान अवसर मिलते हैं, तो सामाजिक असमानता की खाई धीरे-धीरे कम होने लगती है।"},
+{category:"समाज", text:"सामाजिक कुरीतियों को समाप्त करने के लिए कानून बनाना ही पर्याप्त नहीं है, बल्कि जन-जागरूकता भी उतनी ही आवश्यक है। जब समाज स्वयं किसी बुराई को अस्वीकार करना सीखता है, तभी वास्तविक परिवर्तन संभव होता है।"},
+{category:"समाज", text:"शहरीकरण की तेज रफ्तार ने समाज की संरचना को गहराई से प्रभावित किया है। संयुक्त परिवारों का स्थान अब एकल परिवारों ने ले लिया है, जिससे सामाजिक समर्थन प्रणाली कमजोर होती जा रही है। बुजुर्गों की देखभाल, बच्चों के पालन-पोषण और पड़ोसियों के साथ संबंधों में भी यह बदलाव स्पष्ट रूप से दिखाई देता है। हालांकि तकनीक ने दूरियां कम की हैं, फिर भी वास्तविक मानवीय जुड़ाव की जगह डिजिटल संपर्क पूरी तरह नहीं ले सकता। समाज को संतुलित रखने के लिए हमें आधुनिकता और परंपरागत मूल्यों के बीच सही तालमेल बिठाना सीखना होगा।"},
+{category:"व्यक्तिगत विकास", text:"आत्म-अनुशासन सफलता की सबसे मजबूत नींव होती है। जो व्यक्ति अपनी इच्छाओं पर नियंत्रण रखना सीख लेता है, वह जीवन के किसी भी क्षेत्र में आसानी से आगे बढ़ सकता है।"},
+{category:"व्यक्तिगत विकास", text:"असफलता से घबराने के बजाय उसे सीखने का अवसर मानना चाहिए। हर असफलता हमें अपनी कमजोरियों को पहचानने और उन्हें सुधारने का मौका देती है, जो अंततः हमें बेहतर इंसान बनाती है।"},
+{category:"व्यक्तिगत विकास", text:"व्यक्तिगत विकास की यात्रा में आत्म-चिंतन का विशेष महत्व है। दिन के अंत में कुछ समय निकालकर अपने कार्यों का मूल्यांकन करने से हमें यह समझने में मदद मिलती है कि हमने क्या अच्छा किया और कहां सुधार की आवश्यकता है। लक्ष्य निर्धारण, समय प्रबंधन और भावनात्मक नियंत्रण जैसे कौशल एक दिन में नहीं सीखे जा सकते, बल्कि इनके लिए निरंतर अभ्यास और धैर्य की आवश्यकता होती है। जो लोग नियमित रूप से नई चीजें सीखने के लिए स्वयं को खुला रखते हैं, वे बदलते समय के साथ बेहतर तालमेल बिठा पाते हैं और जीवन में अधिक संतोष का अनुभव करते हैं।"},
+{category:"कंप्यूटर", text:"कंप्यूटर के आविष्कार ने गणना और डेटा प्रबंधन के क्षेत्र में क्रांति ला दी। जो काम पहले मनुष्यों को दिनों में करने पड़ते थे, वे अब कंप्यूटर की सहायता से कुछ ही क्षणों में पूरे हो जाते हैं।"},
+{category:"कंप्यूटर", text:"प्रोग्रामिंग सीखना आज के युग में एक आवश्यक कौशल बनता जा रहा है। चाहे वह वेबसाइट बनाना हो, मोबाइल एप्लिकेशन विकसित करना हो या डेटा का विश्लेषण करना हो, प्रोग्रामिंग की समझ हर क्षेत्र में उपयोगी सिद्ध होती है।"},
+{category:"इंटरनेट", text:"इंटरनेट ने दुनिया को एक वैश्विक गांव में बदल दिया है, जहां हजारों किलोमीटर दूर बैठा व्यक्ति भी कुछ ही क्षणों में जुड़ सकता है। हालांकि इस सुविधा के साथ सूचना की विश्वसनीयता जांचने की जिम्मेदारी भी हम पर आ जाती है।"},
+{category:"इंटरनेट", text:"ऑनलाइन सुरक्षा बनाए रखना आज हर इंटरनेट उपयोगकर्ता के लिए आवश्यक हो गया है। मजबूत पासवर्ड का उपयोग, नियमित सॉफ्टवेयर अपडेट और संदिग्ध वेबसाइटों से बचाव जैसी सामान्य सावधानियां हमें बड़ी समस्याओं से बचा सकती हैं।"},
+{category:"करियर", text:"करियर के शुरुआती वर्षों में सीखने पर अधिक ध्यान केंद्रित करना चाहिए, न कि केवल वेतन पर। इस दौर में प्राप्त अनुभव और कौशल भविष्य में मिलने वाले बड़े अवसरों की नींव बनते हैं।"},
+{category:"करियर", text:"नेटवर्किंग यानी पेशेवर संबंध बनाना करियर विकास का एक महत्वपूर्ण पहलू है। सही समय पर सही लोगों से जुड़ाव कई बार नई नौकरी या व्यावसायिक अवसर का द्वार खोल देता है।"},
+{category:"सामान्य ज्ञान", text:"पृथ्वी सौरमंडल का एकमात्र ऐसा ग्रह है जहां जीवन की उपस्थिति की पुष्टि हुई है। इसका कारण इसका सूर्य से उचित दूरी पर स्थित होना और वातावरण में जीवन के अनुकूल गैसों की उपस्थिति है।"},
+{category:"सामान्य ज्ञान", text:"विश्व की सबसे लंबी नदी, सबसे ऊंचा पर्वत और सबसे बड़ा महासागर जैसे तथ्य न केवल रोचक होते हैं बल्कि हमें अपने ग्रह की विशालता और विविधता का भी एहसास कराते हैं।"},
+{category:"व्यावसायिक जीवन", text:"कार्यस्थल पर टीम भावना बनाए रखना संगठन की सफलता के लिए उतना ही जरूरी है जितना व्यक्तिगत प्रदर्शन। जब सहकर्मी एक-दूसरे का सहयोग करते हैं, तो जटिल परियोजनाएं भी आसानी से पूरी हो जाती हैं।"},
+{category:"व्यावसायिक जीवन", text:"कार्य और जीवन के बीच संतुलन बनाए रखना दीर्घकालिक सफलता और मानसिक स्वास्थ्य दोनों के लिए आवश्यक है। लगातार अत्यधिक काम करने से न केवल उत्पादकता घटती है बल्कि व्यक्ति के रिश्तों पर भी नकारात्मक प्रभाव पड़ता है।"},
+{category:"पठन-अध्ययन", text:"नियमित पठन आदत मस्तिष्क को सक्रिय रखने का सबसे प्रभावी तरीका है। जो लोग विविध विषयों पर पढ़ते हैं, उनकी सोचने और समस्याओं को सुलझाने की क्षमता स्वाभाविक रूप से बेहतर होती जाती है।"},
+{category:"पठन-अध्ययन", text:"आजीवन सीखने की प्रवृत्ति रखने वाले लोग बदलते समय के साथ आसानी से ढल जाते हैं। चाहे वह नई तकनीक हो या नया कौशल, निरंतर सीखने की इच्छा व्यक्ति को हमेशा प्रासंगिक बनाए रखती है।"},
+{category:"समय प्रबंधन", text:"समय प्रबंधन का अर्थ केवल अधिक काम करना नहीं, बल्कि सही कार्य को सही समय पर पूरा करना है। जो लोग अपने दिन की योजना पहले से बना लेते हैं, वे तनावमुक्त रहकर बेहतर परिणाम प्राप्त करते हैं।"},
+{category:"समय प्रबंधन", text:"टालमटोल करने की आदत समय प्रबंधन की सबसे बड़ी बाधा है। छोटे-छोटे कार्यों को तुरंत निपटाने की आदत डालने से बड़े कार्यों का बोझ अंतिम समय पर नहीं बढ़ता और मानसिक तनाव भी कम होता है।"},
+{category:"न्यायालय", text:"याचिकाकर्ता की ओर से प्रस्तुत तर्कों और उपलब्ध अभिलेखों के गहन परीक्षण के पश्चात न्यायालय इस निष्कर्ष पर पहुंचा कि प्रतिवादी द्वारा की गई कार्यवाही में प्रक्रियागत त्रुटि स्पष्ट रूप से परिलक्षित होती है। अतः विवादित आदेश को अपास्त करते हुए मामले को पुनर्विचार हेतु संबंधित प्राधिकारी को वापस भेजा जाता है।"},
+{category:"न्यायालय", text:"अभियोजन पक्ष द्वारा प्रस्तुत साक्ष्यों और गवाहों के बयानों में पाई गई असंगतियों के आधार पर न्यायालय ने पाया कि अभियुक्त के विरुद्ध आरोप संदेह से परे सिद्ध नहीं हो पाए। अतः संदेह का लाभ देते हुए अभियुक्त को दोषमुक्त किया जाता है।"},
+{category:"न्यायालय", text:"संपत्ति के स्वामित्व से संबंधित इस दीर्घकालिक विवाद में दोनों पक्षों के अधिवक्ताओं द्वारा प्रस्तुत राजस्व अभिलेखों, बिक्री विलेखों और साक्षियों के बयानों का न्यायालय ने बारीकी से परीक्षण किया। प्रस्तुत साक्ष्यों से यह स्पष्ट होता है कि विवादित भूमि पर वादी का कब्जा निरंतर और अबाधित रहा है, जबकि प्रतिवादी अपने दावे के समर्थन में पर्याप्त एवं विश्वसनीय साक्ष्य प्रस्तुत करने में असफल रहे हैं। तदनुसार, न्यायालय वादी के पक्ष में डिक्री पारित करते हुए यह घोषित करता है कि विवादित भूमि पर उसका स्वामित्व एवं कब्जा विधिसम्मत है, तथा प्रतिवादी को किसी भी प्रकार के हस्तक्षेप से स्थायी रूप से प्रतिबंधित किया जाता है।"},
+{category:"न्यायालय", text:"श्रमिक संगठन द्वारा दायर औद्योगिक विवाद में नियोक्ता पर अनुचित श्रम व्यवहार अपनाने का आरोप लगाया गया था। श्रम न्यायालय ने दोनों पक्षों की गवाही और दस्तावेजी साक्ष्यों के विश्लेषण के पश्चात पाया कि सेवा शर्तों में किया गया एकतरफा परिवर्तन विधि के प्रावधानों के विपरीत था।"},
+{category:"न्यायालय", text:"उपभोक्ता संरक्षण अधिनियम के अंतर्गत दायर इस परिवाद में शिकायतकर्ता ने आरोप लगाया कि विक्रेता द्वारा बेचा गया उत्पाद निर्धारित मानकों के अनुरूप नहीं था और वारंटी अवधि के भीतर मरम्मत के अनुरोध को भी अनदेखा किया गया। प्रस्तुत बिल, वारंटी कार्ड और पत्राचार की प्रतियों के अवलोकन से यह स्पष्ट होता है कि विक्रेता की सेवा में कमी स्पष्ट रूप से सिद्ध होती है। अतः आयोग विक्रेता को निर्देश देता है कि वह उत्पाद बदलने अथवा पूर्ण धनराशि वापस करने में से कोई एक विकल्प चुने, साथ ही शिकायतकर्ता को हुई मानसिक क्षति के लिए उचित प्रतिकर भी अदा करे।"},
+{category:"न्यायालय", text:"पारिवारिक न्यायालय के समक्ष प्रस्तुत भरण-पोषण के आवेदन में आवेदिका ने अपने और नाबालिग बच्चों के जीवन-यापन हेतु उचित मासिक राशि की मांग की। दोनों पक्षों की आय संबंधी जानकारी और सामाजिक स्थिति पर विचार करने के पश्चात न्यायालय ने प्रतिवादी को प्रतिमाह निर्धारित राशि आवेदिका के खाते में जमा कराने का निर्देश दिया।"}
+];
+
+
+function hi_detectPatterns(text){
+  const found = new Set();
+  const singleMap = {'ि':'matra_i','ी':'matra_ii','ु':'matra_u','ू':'matra_u','े':'matra_e','ै':'matra_e','ो':'matra_o','ौ':'matra_o','ं':'anuswar','ः':'visarga'};
+  Object.keys(singleMap).forEach(ch=>{ if(text.indexOf(ch)!==-1) found.add(singleMap[ch]); });
+  if(/क्ष|त्र|ज्ञ/.test(text)) found.add('sanyukt1');
+  if(/[क-ह]्\s?र|र्[क-ह]/.test(text)) found.add('reph');
+  if(/[क-ह]्[क-ह]/.test(text)) found.add('halant');
+  return [...found];
+}
+function hi_buildLibrary(){
+  return HI_PARAGRAPH_LIBRARY_RAW.map((p,i)=>{
+    const id = 'P'+String(i+1).padStart(3,'0');
+    const wordCount = p.text.split(/\s+/).filter(Boolean).length;
+    const difficulty = wordCount<=60 ? 'सरल' : (wordCount<=130 ? 'मध्यम' : 'कठिन');
+    const targetPatterns = hi_detectPatterns(p.text);
+    const containsPunctuation = /[।,.;:()]/.test(p.text);
+    return {id, title:p.category+' · '+id, category:p.category, difficulty, text:p.text, wordCount, targetPatterns, containsPunctuation, createdAt:'2026-08-30'};
+  });
+}
+const HI_PARAGRAPH_LIBRARY = hi_buildLibrary();
+
+/* Sentence-level pool is derived from the paragraph library (no separate,
+   duplicate sentence bank to maintain). */
+function hi_buildSentencePool(){
+  const set = new Set();
+  HI_PARAGRAPH_LIBRARY.forEach(p=>{
+    p.text.split('।').map(s=>s.trim()).filter(s=>s.length>8).forEach(s=> set.add(s+'।'));
+  });
+  return [...set];
+}
+const HI_SENTENCE_POOL = hi_buildSentencePool();
+
+const HI_PHRASES = ["माननीय न्यायालय ने","याचिकाकर्ता की ओर से","प्रतिवादी को निर्देश दिया गया","सुनवाई की अगली तारीख पर","साक्ष्यों के परीक्षण के पश्चात","विधि सम्मत प्रक्रिया के अनुसार","निर्धारित अवधि के भीतर","दोनों पक्षों की सहमति से","अभिलेख पर उपलब्ध साक्ष्यों के अनुसार","न्यायहित को ध्यान में रखते हुए","आदेश की प्रति सभी पक्षों को भेजी जाए","आगामी सुनवाई तक स्थगित किया जाता है"];
+
+/* Pattern drills — grouped by Devanagari matra/conjunct pattern for muscle-memory training */
+const HI_PATTERN_DRILLS = [
+  {id:'matra_i', label:'ि की मात्रा', words:["दिन","किताब","विद्यालय","स्थिति","चित्र","मित्र","गिनती","विधि","चिकित्सा","स्थिर","शिक्षक","चिड़िया","गिलास","किसान"]},
+  {id:'matra_ii', label:'ी की मात्रा', words:["नदी","पानी","जिंदगी","आदमी","राखी","शक्ति","सफाई नहीं","रोटी","बेटी","दीदी","सीढ़ी","चाबी","आरती","रानी"]},
+  {id:'matra_u', label:'ु / ू की मात्रा', words:["गुरु","पुत्र","सुबह","धूप","फूल","भूल","सूरज","चूहा","झूला","खुशबू","दूध","मूल्य","सुविधा","गुलाब"]},
+  {id:'matra_e', label:'े / ै की मात्रा', words:["मेला","खेल","पेड़","सेवा","रेखा","बैल","मैदान","सैनिक","पैसा","चैन","गैस","भैंस","देश","लेख"]},
+  {id:'matra_o', label:'ो / ौ की मात्रा', words:["मोर","कोयल","सोना","रोज़","बौद्ध","चौराहा","गौरव","मौसम","दौड़","खोज","लोक","रोशनी","सोच","होश"]},
+  {id:'anuswar', label:'ं अनुस्वार', words:["गंगा","संतोष","चंद्र","रंग","संगीत","पंख","हंस","मंजिल","संसार","बंधन","संकल्प","संगठन","पंचायत","संचार"]},
+  {id:'visarga', label:'ः विसर्ग', words:["प्रायः","स्वतः","निःशुल्क","दुःख","अंततः","मुख्यतः","सामान्यतः","निःसंदेह"]},
+  {id:'sanyukt1', label:'क्ष / त्र / ज्ञ संयुक्ताक्षर', words:["क्षमा","त्रिशूल","ज्ञान","राष्ट्र","कक्षा","परीक्षा","मित्र","सूत्र","लक्ष्य","विज्ञान","क्षेत्र","राष्ट्रपति","अनुज्ञा","त्रुटि"]},
+  {id:'reph', label:'र् आधा र (रेफ)', words:["कर्म","धर्म","गर्व","सूर्य","पर्व","वर्ष","मार्ग","शर्त","सर्दी","गर्मी","चर्चा","अर्थ","पूर्व","कार्य"]},
+  {id:'halant', label:'हलंत संयुक्ताक्षर', words:["विद्यालय","संस्कार","उत्सव","सम्मान","अनुष्ठान","राष्ट्रीय","उद्देश्य","संख्या","अभ्यास","विश्वास","प्रत्यक्ष","संस्था","व्यवहार","कर्तव्य"]},
+  {id:'legalcombo', label:'कानूनी शब्द संयोजन', words:["न्यायालय","अधिवक्ता","याचिकाकर्ता","अभियुक्त","संविधान","अधिनियम","हलफनामा","कार्यवाही","रजिस्ट्रार","खंडपीठ"]}
+];
+
+/* Finger-group drills — repeated key clusters for muscle memory (QWERTY key positions under the Kruti Dev/Remington layout) */
+const HI_FINGER_GROUPS = [
+  {id:'homerow', label:'होम रो — a s d f j k l ;', keys:['a','s','d','f','j','k','l',';']},
+  {id:'lpinky', label:'बायाँ कनिष्ठा — q a z', keys:['q','a','z']},
+  {id:'lring', label:'बायाँ अनामिका — w s x', keys:['w','s','x']},
+  {id:'lmiddle', label:'बायाँ मध्यमा — e d c', keys:['e','d','c']},
+  {id:'lindex', label:'बायाँ तर्जनी — r f v t g b', keys:['r','f','v','t','g','b']},
+  {id:'rindex', label:'दायाँ तर्जनी — y h n u j m', keys:['y','h','n','u','j','m']},
+  {id:'rmiddle', label:'दायाँ मध्यमा — i k ,', keys:['i','k',',']},
+  {id:'rring', label:'दायाँ अनामिका — o l .', keys:['o','l','.']},
+  {id:'rpinky', label:'दायाँ कनिष्ठा — p ; /', keys:['p',';','/']},
+  {id:'numrow', label:'अंक पंक्ति — 1 2 3 4 5 6 7 8 9 0', keys:['1','2','3','4','5','6','7','8','9','0']}
+];
+
+
+function hiNumbers(){
+  const n=()=>Math.floor(100+Math.random()*9900), y=2026;
+  return `मामला संख्या ${n()}/${y}   याचिका सं. डब्ल्यू.पी.(सी) ${n()}/${y}   धारा ${Math.floor(1+Math.random()*500)}   दिनांक ${Math.floor(1+Math.random()*28)}/${Math.floor(1+Math.random()*12)}/${y}   राशि ₹${n()},${String(Math.floor(Math.random()*100)).padStart(2,'0')}`;
+}
+
+
+/* ---- Hindi anti-repetition + weakness-aware paragraph picker (reuses the
+   same isSeen/markSeen/seenBucket engine as English, under 'hi_' buckets) ---- */
+function hi_weakPatternIds(){
+  const tally = {};
+  Object.entries(DB.mistakeWords||{}).forEach(([word,count])=>{
+    if(!/[\u0900-\u097F]/.test(word)) return; // only Hindi mistake words count toward Hindi weak patterns
+    hi_detectPatterns(word).forEach(pid=>{ tally[pid] = (tally[pid]||0) + count; });
+  });
+  return Object.entries(tally).sort((a,b)=>b[1]-a[1]).filter(([,c])=>c>=2).slice(0,2).map(([id])=>id);
+}
+function hi_pickNextParagraph(filterOpts){
+  filterOpts = filterOpts || {};
+  const bucket = 'hi_paragraph';
+  let pool = HI_PARAGRAPH_LIBRARY.filter(p => !isSeen(bucket, p.id));
+  if(pool.length === 0) pool = HI_PARAGRAPH_LIBRARY.slice(); // full library exhausted — start a fresh cycle
+  if(filterOpts.category){
+    const catPool = pool.filter(p=>p.category===filterOpts.category);
+    if(catPool.length) pool = catPool;
+  }
+  const weak = hi_weakPatternIds();
+  if(weak.length){
+    const weakPool = pool.filter(p=> p.targetPatterns.some(t=>weak.includes(t)));
+    if(weakPool.length) pool = weakPool;
+  }
+  const chosen = pool[randInt(0,pool.length-1)];
+  markSeen(bucket, chosen.id, 'shown');
+  return chosen;
+}
+function hi_makeCycler(pool){
+  let queue = [];
+  return function next(){
+    if(queue.length === 0) queue = shuffle(pool);
+    return queue.pop();
+  };
+}
+const hi_wordCycler = hi_makeCycler(HI_COMMON_WORDS);
+const hi_legalWordCycler = hi_makeCycler(HI_LEGAL_WORDS);
+const hi_sentenceCycler = hi_makeCycler(HI_SENTENCE_POOL);
+
+function hi_genWordDrill(cyclerFn, n){
+  const words = []; for(let i=0;i<n;i++) words.push(cyclerFn());
+  return hi_u2k(words.join(' ') + '।');
+}
+function hi_genFullParagraph(){
+  const p = hi_pickNextParagraph();
+  return {text:hi_u2k(p.text), meta:p};
+}
+function hi_genLongPassage(words, category){
+  let out=[], count=0, guard=0;
+  while(count < words && guard < 60){
+    guard++;
+    const p = hi_pickNextParagraph(category ? {category} : {});
+    out.push(p.text); count += p.wordCount;
+  }
+  return hi_u2k(out.join(' '));
+}
+function hi_genPunctDrill(){
+  const parts=[]; for(let i=0;i<6;i++){ parts.push(hi_sentenceCycler()); }
+  return hi_u2k(parts.join(' '));
+}
+function hi_genNumberDrill(){
+  const parts=[]; for(let i=0;i<4;i++) parts.push(hiNumbers());
+  return parts.join('\n');
+}
+function hi_genPatternDrill(patternId){
+  const p = HI_PATTERN_DRILLS.find(x=>x.id===patternId) || HI_PATTERN_DRILLS[0];
+  const rep = shuffle(p.words).flatMap(w=>[w,w]);
+  return hi_u2k(rep.join(' ') + '।');
+}
+function hi_genFingerDrill(groupId){
+  const g = HI_FINGER_GROUPS.find(x=>x.id===groupId) || HI_FINGER_GROUPS[0];
+  const groups=[];
+  for(let i=0;i<16;i++){
+    let len = randInt(3,5), s='';
+    for(let j=0;j<len;j++) s += g.keys[randInt(0,g.keys.length-1)];
+    groups.push(s);
+  }
+  return groups.join(' ');
+}
+function hi_genPhraseDrill(){
+  return hi_u2k(shuffle(HI_PHRASES).slice(0,4).join('، ')+'।');
+}
 /* =========================================================================
    MOTIVATIONAL MESSAGES (spec §4)
    ========================================================================= */
@@ -1673,6 +2227,18 @@ function pickVaried(key, arr){
   return choice;
 }
 function shuffle(arr){ const a=[...arr]; for(let i=a.length-1;i>0;i--){ const j=randInt(0,i); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+/* Escapes any string before it's interpolated into an innerHTML template.
+   Required wherever user-controlled text (custom drill names, custom drill
+   words/keys typed by the user, mistake-bank words derived from them, the
+   logged-in account's email) ends up inside HTML — otherwise a drill named
+   e.g. <img src=x onerror=alert(1)> would execute as script for anyone
+   viewing that drill list (a real stored-XSS bug found during audit). Safe
+   to use in both text and "quoted attribute" contexts. */
+function escapeHtml(str){
+  return String(str==null ? '' : str).replace(/[&<>"']/g, ch => ({
+    '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
+  }[ch]));
+}
 
 /* =========================================================================
    ANTI-REPETITION & CONTENT ROTATION ENGINE
@@ -2221,12 +2787,16 @@ const FONT_FAMILY_MAP = { mono:"'JetBrains Mono', ui-monospace, monospace", cour
 const VISIBLE_LINES = 4; // teleprompter window: how many lines of the paragraph stay visible at once
 function visibleTextHeight(){
   const s = DB.settings;
-  return Math.round(s.fontSize * s.lineHeight * VISIBLE_LINES);
+  const fontSize = s.lang==='hi' ? Math.round(s.fontSize*1.15) : s.fontSize;
+  return Math.round(fontSize * s.lineHeight * VISIBLE_LINES);
 }
 function typeTextStyle(){
   const s = DB.settings;
   const w = s.textWidth==='100%' ? '100%' : (s.textWidth+'px');
-  return `font-size:${s.fontSize}px;font-family:${FONT_FAMILY_MAP[s.fontFamily]||FONT_FAMILY_MAP.mono};line-height:${s.lineHeight};letter-spacing:${s.letterSpacing};max-width:${w};max-height:${visibleTextHeight()}px;`;
+  const isHi = s.lang === 'hi';
+  const fontFamily = isHi ? 'var(--kruti)' : (FONT_FAMILY_MAP[s.fontFamily]||FONT_FAMILY_MAP.mono);
+  const fontSize = isHi ? Math.round(s.fontSize*1.15) : s.fontSize; // Kruti Dev glyphs read a bit small at the same px size
+  return `font-size:${fontSize}px;font-family:${fontFamily};line-height:${s.lineHeight};letter-spacing:${isHi?'0':s.letterSpacing};max-width:${w};max-height:${visibleTextHeight()}px;`;
 }
 function formatClock(secs){ const m = Math.floor(secs/60), s = secs%60; return m+':'+String(s).padStart(2,'0'); }
 function renderStage(container, text, mode, opts){
@@ -2239,10 +2809,18 @@ function renderStage(container, text, mode, opts){
   if(container._activeEngine && !container._activeEngine.finished){
     container._activeEngine.stop();
   }
+  // Restarting, skipping, or loading a new stage into this container also
+  // means any High Court dictation/transcription audio for the PREVIOUS
+  // stage is no longer relevant — stop it immediately (spec §6). No-op if
+  // nothing is currently speaking.
+  if('speechSynthesis' in window) speechSynthesis.cancel();
   const motiv = opts.hideMotivation ? '' : `<div class="motiv-banner"><span class="m-ico">✦</span><span>${pickMotivationStart()}</span></div>`;
+  const isHiStage = DB.settings.lang === 'hi';
+  const krutiNote = isHiStage ? `<div class="motiv-banner" style="border-color:var(--info);"><span class="m-ico" style="color:var(--info);">⌨</span><span>${t('stage.krutiNote')}</span></div>` : '';
   container.innerHTML = `
     <div class="stage-wrap">
       ${motiv}
+      ${krutiNote}
       <div class="stage-topbar">
         <div class="tb-metric accent"><div class="n" id="liveWpm">0</div><div class="l">WPM</div></div>
         <div class="tb-metric good"><div class="n" id="liveAcc">100%</div><div class="l">Accuracy</div></div>
@@ -2250,17 +2828,17 @@ function renderStage(container, text, mode, opts){
         <div class="tb-metric"><div class="n" id="liveErrs">0</div><div class="l">Errors</div></div>
       </div>
       <div class="type-panel" id="typePanel">
-        <div class="type-text" id="typeText" style="${typeTextStyle()}"></div>
+        <div class="type-text ${isHiStage?'kruti-text':''}" id="typeText" style="${typeTextStyle()}"></div>
         <div class="type-fade" id="typeFade" style="top:${26+visibleTextHeight()-38}px;"></div>
         <input class="hidden-input" id="hiddenInput" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
         <div class="refocus-hint">Click anywhere here to resume typing</div>
         <div class="paused-hint">Paused — press Esc to resume</div>
       </div>
       <div class="stage-foot">
-        <div class="hint">Start typing — the exercise begins automatically. Backspace corrects mistakes.</div>
+        <div class="hint">${t('stage.hint')}</div>
         <div class="stage-controls">
-          <button class="ctrl-btn" id="restartBtn"><span>↻ Restart</span><span class="kbd">Ctrl+R</span></button>
-          ${opts.contentGenerator ? '<button class="ctrl-btn" id="skipBtn"><span>→ Skip</span><span class="kbd">Tab</span></button>' : ''}
+          <button class="ctrl-btn" id="restartBtn"><span>${t('stage.restart')}</span><span class="kbd">Ctrl+R</span></button>
+          ${opts.contentGenerator ? `<button class="ctrl-btn" id="skipBtn"><span>${t('stage.skip')}</span><span class="kbd">Tab</span></button>` : ''}
         </div>
       </div>
       <div id="kbWrap"></div>
@@ -2495,9 +3073,10 @@ function showResult(container, result, mode, opts, sessionRecord){
    SESSION RECORDING + MISTAKE BANK + ADAPTIVE ENGINE
    ========================================================================= */
 function averageWpm(){
-  if(DB.sessions.length===0) return null;
-  const sum = DB.sessions.reduce((a,s)=>a+s.wpm,0);
-  return Math.round(sum/DB.sessions.length);
+  const s = curSessions();
+  if(s.length===0) return null;
+  const sum = s.reduce((a,x)=>a+x.wpm,0);
+  return Math.round(sum/s.length);
 }
 
 function buildSessionRecord(mode, result){
@@ -2505,10 +3084,22 @@ function buildSessionRecord(mode, result){
     id: 's'+Date.now(), mode, wpm: result.wpm, grossWpm: result.grossWpm, accuracy: result.accuracy,
     correctCharacters: result.correctCharacters, incorrectCharacters: result.incorrectCharacters,
     totalCharacters: result.totalCharacters, durationSec: result.durationSec, createdAt: new Date().toISOString(),
+    lang: DB.settings.lang || 'en',
     highCourt: String(mode).startsWith('HC'),
     legalWordMistakes: String(mode).startsWith('HC') ? result.mistakes.filter(m=>HC_LEGAL_WORDS.includes((m.word||'').toLowerCase())).length : 0,
     punctuationMistakes: String(mode).startsWith('HC') ? result.mistakes.filter(m=>/[,:;.'"()\[\]]/.test(m.expected||'')).length : 0,
-    numberDateMistakes: String(mode).startsWith('HC') ? result.mistakes.filter(m=>/\d/.test(m.expected||'')).length : 0
+    numberDateMistakes: String(mode).startsWith('HC') ? result.mistakes.filter(m=>/\d/.test(m.expected||'')).length : 0,
+    // in-memory only — never sent to typing_sessions itself; used once by
+    // syncSessionMistakesToCloud() to populate typing_mistakes after this
+    // session row saves successfully. Only populated when logged in — for
+    // anonymous sessions it would just be dead weight bloating this
+    // browser's local storage over time for a feature it never uses.
+    _rawMistakes: currentUser ? result.mistakes : undefined,
+    // Which account (if any) was active when this test was actually
+    // completed. Used by refreshSaveProgressBoxDom to refuse to sync — or
+    // display as synced — this result under a DIFFERENT account if the user
+    // switches accounts while this result panel is still on screen.
+    _ownerUserId: currentUser ? currentUser.id : null
   };
 }
 async function recordSession(mode, result, opts, sessionRecord){
@@ -2519,27 +3110,31 @@ async function recordSession(mode, result, opts, sessionRecord){
   DB.sessions.push(session);
   await save('sessions');
 
-  // mistake words
+  // mistake words + weak keys are tracked in SEPARATE stores per language (spec: English
+  // and Hindi statistics separately) — Kruti Dev's Remington layout maps physical keys to
+  // different characters than plain QWERTY, so mixing them would produce meaningless stats.
+  const isHi = (DB.settings.lang === 'hi');
+  const mwStore = isHi ? DB.mistakeWordsHi : DB.mistakeWords;
+  const wkStore = isHi ? DB.weakKeysHi : DB.weakKeys;
+
   result.mistakes.forEach(m=>{
     const key = (m.word||'').toLowerCase();
     if(!key) return;
-    if(!DB.mistakeWords[key]) DB.mistakeWords[key] = {word:key, attempts:0, errors:0, lastPracticed:null};
-    DB.mistakeWords[key].attempts += 1;
-    DB.mistakeWords[key].errors += 1;
-    DB.mistakeWords[key].lastPracticed = new Date().toISOString();
+    if(!mwStore[key]) mwStore[key] = {word:key, attempts:0, errors:0, lastPracticed:null};
+    mwStore[key].attempts += 1;
+    mwStore[key].errors += 1;
+    mwStore[key].lastPracticed = new Date().toISOString();
   });
-  // also count attempts for words that appeared without mistakes, cheap heuristic: skip (out of scope)
-  await save('mistakeWords');
+  await save(isHi ? 'mistakeWordsHi' : 'mistakeWords');
 
-  // weak keys
   result.mistakes.forEach(m=>{
     const k = m.expected;
     if(!k) return;
-    if(!DB.weakKeys[k]) DB.weakKeys[k] = {key:k, attempts:0, mistakes:0};
-    DB.weakKeys[k].attempts += 1;
-    DB.weakKeys[k].mistakes += 1;
+    if(!wkStore[k]) wkStore[k] = {key:k, attempts:0, mistakes:0};
+    wkStore[k].attempts += 1;
+    wkStore[k].mistakes += 1;
   });
-  await save('weakKeys');
+  await save(isHi ? 'weakKeysHi' : 'weakKeys');
 
   // xp + streak
   const xpGain = Math.round(result.correctCharacters*0.5 + (result.accuracy>=98?20:0) + (result.wpm>=50?15:0));
@@ -2552,27 +3147,40 @@ async function recordSession(mode, result, opts, sessionRecord){
 
   renderDashboard();
   if(document.getElementById('page-practice').classList.contains('active')) renderWeakPanel();
-
-  // Auto-save to the cloud the instant a test finishes, if logged in — no
-  // "Save your progress" click required any more. Fire-and-forget: it must
-  // never block or delay showing the result, and its outcome is reflected
-  // back into whichever result panel (if any) is still showing this exact
-  // session, via the shared `session` object reference (see
-  // autoSyncSessionToCloud / refreshSaveProgressBoxDom above).
-  if(currentUser){
-    autoSyncSessionToCloud(session);
-  }
 }
 
+/* Streak is always DERIVED from the actual session dates present in DB.sessions —
+   never incremented/trusted as a separately-drifting counter. This is what makes
+   cross-device restore correct: sessions on Sep 1-4 always produce a 4-day streak,
+   regardless of which device or account state computed it last (spec §11).
+   Calendar days are computed in the browser's local timezone consistently
+   everywhere this runs (toDateString()), matching the rest of the app's date
+   handling (fmtDate, "last" tracking, etc.). */
+function recomputeStreakFromSessions(sessions){
+  if(!sessions || !sessions.length) return { count:0, best:0, last:null };
+  const daySet = new Set(sessions.map(s=> new Date(s.createdAt).toDateString()));
+  const days = [...daySet].map(d=> new Date(d)).sort((a,b)=> a-b);
+  let best = 1, run = 1;
+  for(let i=1;i<days.length;i++){
+    const diff = Math.round((days[i]-days[i-1]) / 86400000);
+    run = (diff === 1) ? run+1 : 1;
+    best = Math.max(best, run);
+  }
+  const today = new Date(); today.setHours(0,0,0,0);
+  const lastDay = days[days.length-1];
+  const daysSinceLast = Math.round((today - lastDay) / 86400000);
+  let current = 0;
+  if(daysSinceLast <= 1){ // last practiced today or yesterday → streak is still "alive"
+    current = 1;
+    for(let i=days.length-1;i>0;i--){
+      const diff = Math.round((days[i]-days[i-1]) / 86400000);
+      if(diff === 1) current += 1; else break;
+    }
+  }
+  return { count: current, best: Math.max(best, current), last: lastDay.toDateString() };
+}
 function updateStreak(){
-  const today = new Date().toDateString();
-  const last = DB.streakData.last;
-  if(last === today) return; // already counted today
-  const yesterday = new Date(Date.now()-86400000).toDateString();
-  if(last === yesterday) DB.streakData.count += 1;
-  else DB.streakData.count = 1;
-  DB.streakData.best = Math.max(DB.streakData.best||0, DB.streakData.count);
-  DB.streakData.last = today;
+  DB.streakData = recomputeStreakFromSessions(DB.sessions);
 }
 
 const ACHIEVEMENTS = [
@@ -2590,6 +3198,9 @@ const ACHIEVEMENTS = [
 function totalWordsTyped(){
   return Math.round(DB.sessions.reduce((a,s)=>a+s.correctCharacters,0)/5);
 }
+function curWordsTyped(){
+  return Math.round(curSessions().reduce((a,s)=>a+s.correctCharacters,0)/5);
+}
 function checkAchievements(){
   ACHIEVEMENTS.forEach(a=>{
     if(!DB.achievementsUnlocked.includes(a.id) && a.test()) DB.achievementsUnlocked.push(a.id);
@@ -2597,16 +3208,23 @@ function checkAchievements(){
 }
 
 /* ---- adaptive recommendation ---- */
+function curSessions(){
+  const lang = DB.settings.lang || 'en';
+  return DB.sessions.filter(s => (s.lang||'en') === lang);
+}
 function worstMistakeWords(n){
-  return Object.values(DB.mistakeWords).sort((a,b)=> (b.errors/b.attempts) - (a.errors/a.attempts) || b.errors-a.errors).slice(0,n);
+  const store = (DB.settings.lang==='hi') ? DB.mistakeWordsHi : DB.mistakeWords;
+  return Object.values(store).sort((a,b)=> (b.errors/b.attempts) - (a.errors/a.attempts) || b.errors-a.errors).slice(0,n);
 }
 function worstKeys(n){
-  return Object.values(DB.weakKeys).sort((a,b)=> b.mistakes - a.mistakes).slice(0,n);
+  const store = (DB.settings.lang==='hi') ? DB.weakKeysHi : DB.weakKeys;
+  return Object.values(store).sort((a,b)=> b.mistakes - a.mistakes).slice(0,n);
 }
 function keyFinger(k){ return FINGER_MAP[k] || '?'; }
 function weakestFinger(){
+  const store = (DB.settings.lang==='hi') ? DB.weakKeysHi : DB.weakKeys;
   const counts = {};
-  Object.values(DB.weakKeys).forEach(wk=>{
+  Object.values(store).forEach(wk=>{
     const f = keyFinger(wk.key);
     counts[f] = (counts[f]||0) + wk.mistakes;
   });
@@ -2615,7 +3233,7 @@ function weakestFinger(){
 }
 
 function generateCoachMessage(){
-  const last = DB.sessions[DB.sessions.length-1];
+  const last = curSessions()[curSessions().length-1];
   const words = worstMistakeWords(5);
   if(!last){
     return {
@@ -2645,12 +3263,12 @@ function generateCoachMessage(){
   if(words.length){
     const w = words[0];
     const acc = Math.round((1 - w.errors/w.attempts)*100);
-    lines.push(`Your biggest word weakness is <b>"${w.word}"</b> (${acc}% accuracy over ${w.attempts} attempts). A short drill on it now will pay off quickly.`);
+    lines.push(`Your biggest word weakness is <b>"${escapeHtml(w.word)}"</b> (${acc}% accuracy over ${w.attempts} attempts). A short drill on it now will pay off quickly.`);
   }
   const wk = worstKeys(3);
   let chips = '';
   if(wk.length){
-    chips = `<div class="chips">${wk.map(k=>`<span class="chip bad">${k.key==='  '||k.key===' '?'space':k.key} · ${keyFinger(k.key)}</span>`).join('')}</div>`;
+    chips = `<div class="chips">${wk.map(k=>`<span class="chip bad">${k.key==='  '||k.key===' '?'space':escapeHtml(k.key)} · ${escapeHtml(keyFinger(k.key))}</span>`).join('')}</div>`;
   }
   return { tag:'Your focus today', html:`<p>${lines.join(' ')}</p>${chips}` };
 }
@@ -2660,6 +3278,11 @@ function generateCoachMessage(){
    ========================================================================= */
 const pages = ['dashboard','practice','drillbuilder','highcourt','wpmtest','mistakes','progress','workout','achievements','settings'];
 function showPage(name){
+  // Leaving (or re-entering) any page cancels any High Court dictation/
+  // transcription audio still playing — otherwise it keeps speaking in the
+  // background indefinitely after the user has navigated away (spec §6).
+  // A no-op if nothing is currently speaking.
+  if('speechSynthesis' in window) speechSynthesis.cancel();
   pages.forEach(p=>{
     document.getElementById('page-'+p).classList.toggle('active', p===name);
   });
@@ -2686,14 +3309,15 @@ function fmtDate(iso){ const d = new Date(iso); return d.toLocaleDateString(unde
 function accBarClass(acc){ return acc>=95?'':acc>=85?'mid':'low'; }
 
 function renderDashboard(){
-  const s = DB.sessions;
+  const s = curSessions();
   const last = s[s.length-1];
   const best = s.length ? Math.max(...s.map(x=>x.wpm)) : 0;
   const avg = averageWpm() || 0;
   const bestAcc = s.length ? Math.max(...s.map(x=>x.accuracy)) : 0;
   const totalMin = Math.round(s.reduce((a,x)=>a+x.durationSec,0)/60);
-  const totalWords = totalWordsTyped();
-  const totalMistakes = Object.values(DB.mistakeWords).reduce((a,w)=>a+w.errors,0);
+  const totalWords = curWordsTyped();
+  const mwStore = (DB.settings.lang==='hi') ? DB.mistakeWordsHi : DB.mistakeWords;
+  const totalMistakes = Object.values(mwStore).reduce((a,w)=>a+w.errors,0);
 
   document.getElementById('dashStats').innerHTML = `
     <div class="card stat-card"><div class="label">Today's WPM</div><div class="value accent">${last?last.wpm:'—'}</div><div class="sub">${last?last.accuracy+'% accuracy':'no session yet'}</div></div>
@@ -2712,17 +3336,17 @@ function renderDashboard(){
   const wk = worstKeys(6);
   document.getElementById('weakKeysChips').innerHTML = wk.length ? wk.map(k=>{
     const acc = Math.round((1-(k.mistakes/Math.max(k.attempts,1)))*100);
-    return `<span class="chip bad">${k.key===' '?'space':k.key} <span style="color:var(--text-faint)">(${acc}%)</span></span>`;
+    return `<span class="chip bad">${k.key===' '?'space':escapeHtml(k.key)} <span style="color:var(--text-faint)">(${acc}%)</span></span>`;
   }).join('') : '<span class="chip">Not enough data yet</span>';
 
   const ww = worstMistakeWords(6);
   document.getElementById('weakWordsChips').innerHTML = ww.length ? ww.map(w=>{
     const acc = Math.round((1-(w.errors/Math.max(w.attempts,1)))*100);
-    return `<span class="chip bad">${w.word} <span style="color:var(--text-faint)">(${acc}%)</span></span>`;
+    return `<span class="chip bad">${escapeHtml(w.word)} <span style="color:var(--text-faint)">(${acc}%)</span></span>`;
   }).join('') : '<span class="chip">Not enough data yet</span>';
 
   const rows = s.slice(-8).reverse().map(x=>`
-    <tr><td>${x.mode}</td><td class="mono">${x.wpm}</td><td class="mono">${x.accuracy}%</td><td class="mono">${x.durationSec}s</td><td>${fmtDate(x.createdAt)}</td></tr>
+    <tr><td>${escapeHtml(x.mode)}</td><td class="mono">${x.wpm}</td><td class="mono">${x.accuracy}%</td><td class="mono">${x.durationSec}s</td><td>${fmtDate(x.createdAt)}</td></tr>
   `).join('');
   document.getElementById('recentSessions').innerHTML = rows || `<tr><td colspan="5" style="color:var(--text-faint);">No sessions yet — head to Practice to get started.</td></tr>`;
 
@@ -2733,26 +3357,28 @@ function renderDashboard(){
    MISTAKE BANK
    ========================================================================= */
 function renderMistakeBank(){
-  const words = Object.values(DB.mistakeWords).sort((a,b)=> (b.errors/b.attempts) - (a.errors/a.attempts));
+  const isHi = (DB.settings.lang==='hi');
+  const store = isHi ? DB.mistakeWordsHi : DB.mistakeWords;
+  const words = Object.values(store).sort((a,b)=> (b.errors/b.attempts) - (a.errors/a.attempts));
+  const cellClass = isHi ? 'kruti-text' : 'mono';
   document.getElementById('mistakeTable').innerHTML = words.length ? words.map(w=>{
     const acc = Math.round((1-(w.errors/Math.max(w.attempts,1)))*100);
     return `<tr>
-      <td class="mono">${w.word}</td>
+      <td class="${cellClass}">${escapeHtml(w.word)}</td>
       <td class="mono">${w.attempts}</td>
       <td class="mono">${w.errors}</td>
       <td><span class="acc-bar"><i class="${accBarClass(acc)}" style="width:${acc}%"></i></span>${acc}%</td>
       <td class="mono">${w.lastPracticed?fmtDate(w.lastPracticed):'—'}</td>
-      <td><button class="btn ghost drillBtn" data-word="${w.word}" style="padding:5px 10px;font-size:11.5px;">Drill</button></td>
+      <td><button class="btn ghost drillBtn" data-word="${escapeHtml(w.word)}" style="padding:5px 10px;font-size:11.5px;">Drill</button></td>
     </tr>`;
   }).join('') : `<tr><td colspan="6" style="color:var(--text-faint);">No mistakes tracked yet. Start practicing and this fills in automatically.</td></tr>`;
 
   document.querySelectorAll('.drillBtn').forEach(b=> b.addEventListener('click', ()=>{
     const word = b.dataset.word;
     showPage('practice');
-    const gen = ()=> ({
-      text: `${word} ${word} ${word}. ${word} is often confused with similar words. Practice ${word} until it feels automatic: ${word}.`,
-      mode: 'review: '+word
-    });
+    const gen = isHi
+      ? ()=> ({ text: `${word} ${word} ${word} ${word} ${word} ${word}।`, mode: 'review: '+word })
+      : ()=> ({ text: `${word} ${word} ${word}. ${word} is often confused with similar words. Practice ${word} until it feels automatic: ${word}.`, mode: 'review: '+word });
     launchPracticeStage(gen);
   }));
 }
@@ -2765,7 +3391,7 @@ function filteredSessions(range){
   const now = Date.now();
   const cutoffs = {today:86400000, '7d':7*86400000, '30d':30*86400000, all:Infinity};
   const cutoff = cutoffs[range] ?? Infinity;
-  return DB.sessions.filter(s=> now - new Date(s.createdAt).getTime() <= cutoff);
+  return curSessions().filter(s=> now - new Date(s.createdAt).getTime() <= cutoff);
 }
 function renderProgress(range){
   document.getElementById('progressFilters').innerHTML = ['today','7d','30d','all'].map(r=>
@@ -2797,9 +3423,9 @@ function renderProgress(range){
     });
   }
 
-  const best = DB.sessions.length ? Math.max(...DB.sessions.map(s=>s.wpm)) : 0;
-  const bestAcc = DB.sessions.length ? Math.max(...DB.sessions.map(s=>s.accuracy)) : 0;
-  const longest = DB.sessions.length ? Math.max(...DB.sessions.map(s=>s.durationSec)) : 0;
+  const best = curSessions().length ? Math.max(...curSessions().map(s=>s.wpm)) : 0;
+  const bestAcc = curSessions().length ? Math.max(...curSessions().map(s=>s.accuracy)) : 0;
+  const longest = curSessions().length ? Math.max(...curSessions().map(s=>s.durationSec)) : 0;
   document.getElementById('records').innerHTML = `
     <div class="card stat-card"><div class="label">Fastest WPM</div><div class="value accent">${best||'—'}</div></div>
     <div class="card stat-card"><div class="label">Highest accuracy</div><div class="value good">${bestAcc?bestAcc+'%':'—'}</div></div>
@@ -2867,8 +3493,21 @@ const MODES = [
   {id:'punctuation', title:'Punctuation', desc:'Dedicated comma, quote, dash and bracket training.', ico:'08'},
   {id:'sentences', title:'Sentence Challenge', desc:'50–150 fresh unique sentences per challenge, never repeated.', ico:'09'},
 ];
+const HI_MODES = [
+  {id:'hi_finger', title:'फिंगर अभ्यास', desc:'कुंजी-समूह अभ्यास — उंगली की स्थिति के अनुसार।', ico:'01'},
+  {id:'hi_mistakes', title:'गलती अभ्यास', desc:'जिन शब्दों में आप बार-बार गलती करते हैं, उन्हीं का अभ्यास।', ico:'02'},
+  {id:'hi_words', title:'शब्द अभ्यास', desc:'सामान्य हिंदी शब्दों का अभ्यास।', ico:'03'},
+  {id:'hi_legalwords', title:'कानूनी शब्द', desc:'न्यायालय में प्रयुक्त होने वाली शब्दावली।', ico:'04'},
+  {id:'hi_pattern', title:'मात्रा / पैटर्न अभ्यास', desc:'संयुक्ताक्षर, मात्राएँ और सामान्य अक्षर-संयोजन।', ico:'05'},
+  {id:'hi_paragraph', title:'परिच्छेद अभ्यास', desc:'पूर्ण हिंदी परिच्छेद — विभिन्न श्रेणियों और लंबाई में।', ico:'06'},
+  {id:'hi_sentence', title:'वाक्य अभ्यास', desc:'ताज़ा, कभी न दोहराए जाने वाले हिंदी वाक्य।', ico:'07'},
+  {id:'hi_number', title:'संख्या / दिनांक', desc:'मामला संख्या, दिनांक, राशि — न्यायालय शैली में।', ico:'08'},
+  {id:'hi_phrase', title:'न्यायालय वाक्यांश', desc:'याचिकाकर्ता, प्रतिवादी और औपचारिक न्यायालय भाषा।', ico:'09'},
+];
 function renderModeGrid(){
-  document.getElementById('modeGrid').innerHTML = MODES.map(m=>`
+  const isHi = DB.settings.lang==='hi';
+  const list = isHi ? HI_MODES : MODES;
+  document.getElementById('modeGrid').innerHTML = list.map(m=>`
     <div class="mode-card" data-mode="${m.id}"><div class="m-ico">${m.ico}</div><div class="m-title">${m.title}</div><div class="m-desc">${m.desc}</div></div>
   `).join('');
   document.querySelectorAll('.mode-card').forEach(c=> c.addEventListener('click', ()=> openModePicker(c.dataset.mode)));
@@ -2903,6 +3542,7 @@ function renderWeakPanel(){
 
 function openModePicker(modeId){
   const wrap = document.getElementById('subpickerWrap');
+  if(modeId.startsWith('hi_')){ return hi_openModePicker(modeId, wrap); }
   if(modeId==='muscle'){
     const options = ['homerow','lefthand','righthand','L-pinky','L-ring','L-middle','L-index','R-index','R-middle','R-ring','R-pinky'];
     wrap.innerHTML = `<div class="subpicker">${options.map(o=>`<button class="pill" data-o="${o}">${MUSCLE_DRILLS[o].label}</button>`).join('')}</div>`;
@@ -2963,6 +3603,85 @@ function openModePicker(modeId){
   }
 }
 function setActivePill(wrap, active){ wrap.querySelectorAll('.pill').forEach(p=>p.classList.remove('active')); active.classList.add('active'); }
+
+/* =========================================================================
+   HINDI PRACTICE MODE PICKERS — mirrors the English pickers above, but
+   drives the Hindi content generators (all pre-converted via hi_u2k so the
+   Kruti Dev 010 mapping is applied exactly as in the original Hindi app).
+   ========================================================================= */
+function hi_openModePicker(modeId, wrap){
+  if(modeId==='hi_finger'){
+    wrap.innerHTML = `<div class="subpicker">${HI_FINGER_GROUPS.map(g=>`<button class="pill" data-o="${g.id}">${g.label}</button>`).join('')}</div>`;
+    wrap.querySelectorAll('.pill').forEach(p=> p.addEventListener('click', ()=>{
+      setActivePill(wrap,p);
+      launchPracticeStage(()=>({text: hi_genFingerDrill(p.dataset.o), mode:'हिंदी · फिंगर अभ्यास'}));
+    }));
+  } else if(modeId==='hi_mistakes'){
+    wrap.innerHTML = `<div class="subpicker"><button class="pill active" id="hiMistakeBtn">गलती अभ्यास शुरू करें</button></div>`;
+    document.getElementById('hiMistakeBtn').addEventListener('click', ()=>{
+      launchPracticeStage(()=>{
+        const words = worstMistakeWords(8).map(w=>w.word); // already Kruti-encoded — captured from typed target text
+        const text = words.length ? words.flatMap(w=>[w,w]).join(' ')+'।' : hi_genWordDrill(hi_wordCycler, 16);
+        return {text, mode:'हिंदी · गलती अभ्यास'};
+      });
+    });
+  } else if(modeId==='hi_words'){
+    wrap.innerHTML = `<div class="subpicker"><button class="pill active" id="hiWordBtn">शब्द अभ्यास शुरू करें</button></div>`;
+    document.getElementById('hiWordBtn').addEventListener('click', ()=>{
+      launchPracticeStage(()=>({text: hi_genWordDrill(hi_wordCycler, 18), mode:'हिंदी · शब्द अभ्यास'}));
+    });
+  } else if(modeId==='hi_legalwords'){
+    wrap.innerHTML = `<div class="subpicker"><button class="pill active" id="hiLegalBtn">कानूनी शब्द अभ्यास शुरू करें</button></div>`;
+    document.getElementById('hiLegalBtn').addEventListener('click', ()=>{
+      launchPracticeStage(()=>({text: hi_genWordDrill(hi_legalWordCycler, 14), mode:'हिंदी · कानूनी शब्द'}));
+    });
+  } else if(modeId==='hi_pattern'){
+    wrap.innerHTML = `<div class="subpicker">${HI_PATTERN_DRILLS.map(p=>`<button class="pill" data-o="${p.id}">${p.label}</button>`).join('')}</div>`;
+    wrap.querySelectorAll('.pill').forEach(p=> p.addEventListener('click', ()=>{
+      setActivePill(wrap,p);
+      launchPracticeStage(()=>({text: hi_genPatternDrill(p.dataset.o), mode:'हिंदी · मात्रा/पैटर्न'}));
+    }));
+  } else if(modeId==='hi_paragraph'){
+    const cats = Array.from(new Set(HI_PARAGRAPH_LIBRARY.map(p=>p.category)));
+    const lengths = [['short',150],['medium',300],['long',500],['verylong',800]];
+    wrap.innerHTML = `
+      <div style="font-size:11px;color:var(--text-faint);text-transform:uppercase;letter-spacing:.06em;margin:12px 0 6px;">श्रेणी</div>
+      <div class="subpicker" id="hiPgCat"><button class="pill active" data-o="">कोई भी</button>${cats.map(c=>`<button class="pill" data-o="${c}">${c}</button>`).join('')}</div>
+      <div style="font-size:11px;color:var(--text-faint);text-transform:uppercase;letter-spacing:.06em;margin:12px 0 6px;">लंबाई</div>
+      <div class="subpicker" id="hiPgLen">${lengths.map((l,i)=>`<button class="pill ${i===1?'active':''}" data-words="${l[1]}">${l[0]} (~${l[1]} शब्द)</button>`).join('')}</div>
+      <div class="db-actions"><button class="btn" id="hiPgStartBtn">परिच्छेद शुरू करें</button></div>`;
+    wrap.querySelectorAll('#hiPgCat .pill').forEach(p=> p.addEventListener('click', ()=> setActivePill(wrap.querySelector('#hiPgCat'), p)));
+    wrap.querySelectorAll('#hiPgLen .pill').forEach(p=> p.addEventListener('click', ()=> setActivePill(wrap.querySelector('#hiPgLen'), p)));
+    document.getElementById('hiPgStartBtn').addEventListener('click', ()=>{
+      const category = wrap.querySelector('#hiPgCat .pill.active').dataset.o || null;
+      const words = +wrap.querySelector('#hiPgLen .pill.active').dataset.words;
+      launchPracticeStage(()=>({text: hi_genLongPassage(words, category), mode:'हिंदी · परिच्छेद'+(category?' · '+category:'')}));
+    });
+  } else if(modeId==='hi_sentence'){
+    const sizes = [40,50,75,100];
+    wrap.innerHTML = `<div class="subpicker">${sizes.map((s,i)=>`<button class="pill ${i===0?'active':''}" data-o="${s}">${s} वाक्य</button>`).join('')}</div>
+      <div class="db-actions"><button class="btn" id="hiScStartBtn">वाक्य अभ्यास शुरू करें</button></div>`;
+    wrap.querySelectorAll('.subpicker .pill').forEach(p=> p.addEventListener('click', ()=> setActivePill(wrap.querySelector('.subpicker'), p)));
+    document.getElementById('hiScStartBtn').addEventListener('click', ()=>{
+      const n = +wrap.querySelector('.subpicker .pill.active').dataset.o;
+      launchPracticeStage(()=>{
+        const parts=[]; for(let i=0;i<n;i++) parts.push(hi_sentenceCycler());
+        return {text: hi_u2k(parts.join(' ')), mode:'हिंदी · वाक्य चुनौती · '+n};
+      });
+    });
+  } else if(modeId==='hi_number'){
+    wrap.innerHTML = `<div class="subpicker"><button class="pill active" id="hiNumBtn">संख्या अभ्यास शुरू करें</button></div>`;
+    document.getElementById('hiNumBtn').addEventListener('click', ()=>{
+      launchPracticeStage(()=>({text: hi_genNumberDrill(), mode:'हिंदी · संख्या/दिनांक'}));
+    });
+  } else if(modeId==='hi_phrase'){
+    wrap.innerHTML = `<div class="subpicker"><button class="pill active" id="hiPhraseBtn">न्यायालय वाक्यांश शुरू करें</button></div>`;
+    document.getElementById('hiPhraseBtn').addEventListener('click', ()=>{
+      launchPracticeStage(()=>({text: hi_genPhraseDrill(), mode:'हिंदी · न्यायालय वाक्यांश'}));
+    });
+  }
+}
+
 
 function launchPracticeStage(generatorFn){
   const container = document.getElementById('practiceStage');
@@ -3117,8 +3836,26 @@ function renderDrillBuilder(){
     const cfg = readDrillConfig();
     const name = prompt('Name this drill:', cfg.type+' drill');
     if(!name) return;
-    DB.customDrills.push(Object.assign({name, id:'d'+Date.now()}, cfg));
-    await save('customDrills');
+    const drill = Object.assign({name, id:'d'+Date.now()}, cfg);
+    if(currentUser){
+      // Capture which account this save is FOR before the network round trip.
+      // If the user switches accounts while this is in flight, the drill is
+      // still saved correctly under the original account (payload already
+      // carries `userId`) — but it must never be pushed into DB.customDrills
+      // if that list now belongs to a different account by the time we get
+      // a response.
+      const userId = currentUser.id;
+      const btn = document.getElementById('db-save-btn');
+      btn.disabled = true; btn.textContent = 'Saving…';
+      const ok = await saveCustomDrillToCloud(drill, userId);
+      btn.disabled = false; btn.textContent = 'Save Custom Drill';
+      if(!ok) return;
+      if(!currentUser || currentUser.id !== userId) return; // account changed mid-save — don't touch the (now different) active drill list
+      DB.customDrills.push(drill);
+    } else {
+      DB.customDrills.push(drill);
+      await save('customDrills');
+    }
     renderSavedDrills();
   };
   renderSavedDrills();
@@ -3185,10 +3922,10 @@ function renderSavedDrills(){
   }
   el.innerHTML = DB.customDrills.map(d=>`
     <div class="saved-drill">
-      <div><div class="sd-name">${d.name}</div><div class="sd-desc">${d.type} · ${d.difficulty} · ${d.duration? d.duration+'s':'no limit'} · ${d.reps} reps</div></div>
+      <div><div class="sd-name">${escapeHtml(d.name)}</div><div class="sd-desc">${escapeHtml(d.type)} · ${escapeHtml(d.difficulty)} · ${d.duration? d.duration+'s':'no limit'} · ${d.reps} reps</div></div>
       <div class="sd-btns">
-        <button class="btn ghost runDrillBtn" data-id="${d.id}" style="padding:6px 12px;font-size:12px;">Run</button>
-        <button class="btn ghost delDrillBtn" data-id="${d.id}" style="padding:6px 12px;font-size:12px;">Delete</button>
+        <button class="btn ghost runDrillBtn" data-id="${escapeHtml(d.id)}" style="padding:6px 12px;font-size:12px;">Run</button>
+        <button class="btn ghost delDrillBtn" data-id="${escapeHtml(d.id)}" style="padding:6px 12px;font-size:12px;">Delete</button>
       </div>
     </div>`).join('');
   el.querySelectorAll('.runDrillBtn').forEach(b=> b.addEventListener('click', ()=>{
@@ -3196,8 +3933,17 @@ function renderSavedDrills(){
     if(cfg) runCustomDrill(cfg);
   }));
   el.querySelectorAll('.delDrillBtn').forEach(b=> b.addEventListener('click', async ()=>{
-    DB.customDrills = DB.customDrills.filter(d=>d.id!==b.dataset.id);
-    await save('customDrills');
+    const id = b.dataset.id;
+    if(currentUser){
+      // Same account-switch-mid-flight guard as db-save-btn above.
+      const userId = currentUser.id;
+      b.disabled = true; b.textContent = 'Deleting…';
+      const ok = await deleteCustomDrillFromCloud(id, userId);
+      if(!ok){ b.disabled = false; b.textContent = 'Delete'; return; }
+      if(!currentUser || currentUser.id !== userId) return; // account changed mid-delete — don't touch the (now different) active drill list
+    }
+    DB.customDrills = DB.customDrills.filter(d=>d.id!==id);
+    if(!currentUser) await save('customDrills');
     renderSavedDrills();
   }));
 }
@@ -3262,6 +4008,14 @@ const HC_MODES=[
 {id:"punctuation",title:"Punctuation",desc:"Court punctuation and difficult symbols.",ico:"09"},
 {id:"exam",title:"Exam Simulation",desc:"Timed test with no suggestions or corrections.",ico:"10"},
 {id:"longPassage",title:"Long Court Passage",desc:"200 / 300 / 500 / 700 / 1000+ word formal passages.",ico:"11"}];
+const HC_MODES_HI=[
+{id:"legalTyping",title:"कानूनी टाइपिंग",desc:"न्यायालय से संबंधित परिच्छेद और औपचारिक वाक्य।",ico:"01"},
+{id:"legalWords",title:"कानूनी शब्द",desc:"कठिन कानूनी शब्दावली — अनुकूलित पुनरावृत्ति के साथ।",ico:"02"},
+{id:"legalPhrases",title:"कानूनी वाक्यांश",desc:"सामान्य न्यायालय वाक्यांश और वाक्य पैटर्न।",ico:"03"},
+{id:"muscle",title:"स्मृति अभ्यास",desc:"कुंजी → शब्द → वाक्यांश → वाक्य → छिपा हुआ स्मरण।",ico:"04"},
+{id:"numbers",title:"संख्या व दिनांक",desc:"मामला संख्या, धारा, दिनांक, राशि व प्रतिशत।",ico:"07"},
+{id:"exam",title:"परीक्षा अभ्यास",desc:"बिना सुझाव व सुधार के समयबद्ध परीक्षण।",ico:"10"},
+{id:"longPassage",title:"लंबा न्यायालय परिच्छेद",desc:"200 / 300 / 500 / 700 / 1000+ शब्दों के औपचारिक परिच्छेद।",ico:"11"}];
 function hcPick(a){return a[Math.floor(Math.random()*a.length)];}
 /** Same strict never-repeat model as the general paragraph/sentence pools, applied to the
  *  High Court content banks (spec §14: legal passages follow the same anti-repetition rules). */
@@ -3283,7 +4037,17 @@ function hcPickFresh(bucket, arr){
   return chosen;
 }
 function hcNumbers(){const n=()=>Math.floor(100+Math.random()*9900),y=2026;return `${n()}/${y}   W.P.(C) No. ${n()}/${y}   Section ${Math.floor(1+Math.random()*500)}   ${Math.floor(1+Math.random()*28)}/${Math.floor(1+Math.random()*12)}/${y}   ₹${n()},${String(Math.floor(Math.random()*100)).padStart(2,'0')}   ${(Math.random()*100).toFixed(2)}%`;}
+function hcNewContentHi(mode){
+  if(mode==='legalTyping'){ const p=hi_pickNextParagraph({category:'न्यायालय'}); return {text:hi_u2k(p.text), mode:'न्यायालय · कानूनी टाइपिंग'}; }
+  if(mode==='legalWords'){ const p=shuffle(HI_LEGAL_WORDS).slice(0,10); return {text:hi_u2k(p.map(w=>`${w} ${w}`).join(' ')+'।'), mode:'न्यायालय · कानूनी शब्द'}; }
+  if(mode==='legalPhrases'){ return {text:hi_u2k(shuffle(HI_PHRASES).slice(0,3).join(' ')), mode:'न्यायालय · कानूनी वाक्यांश'}; }
+  if(mode==='numbers'){ return {text:Array.from({length:4},hiNumbers).join('\n'), mode:'न्यायालय · संख्या व दिनांक'}; }
+  // exam simulation — mixes a fresh court paragraph, phrases and a numbers/dates line
+  const p=hi_pickNextParagraph({category:'न्यायालय'});
+  return {text:hi_u2k([p.text, shuffle(HI_PHRASES).slice(0,2).join(' ')].join(' '))+' '+hiNumbers(), mode:'न्यायालय · परीक्षा अभ्यास'};
+}
 function hcNewContent(mode){
+ if(DB.settings.lang==='hi') return hcNewContentHi(mode);
  if(mode==='legalTyping')return{text:hcPickFresh('hcParagraph', HC_PARAGRAPHS),mode:'HC · legal typing'};
  if(mode==='legalWords'){const p=[...HC_LEGAL_WORDS].sort(()=>Math.random()-.5).slice(0,10);return{text:p.map(w=>`${w} ${w}`).join(' ')+'.',mode:'HC · legal words'};}
  if(mode==='legalPhrases')return{text:hcPickFresh('hcPhrase', HC_PHRASES),mode:'HC · legal phrases'};
@@ -3306,14 +4070,61 @@ function hcLongPassage(targetWords){
   }
   return text;
 }
+function hcLongPassageHi(targetWords){ return hi_genLongPassage(targetWords, 'न्यायालय'); }
 function hcCoachFeedback(r){const l=r.mistakes.filter(m=>HC_LEGAL_WORDS.includes((m.word||'').toLowerCase())).length,p=r.mistakes.filter(m=>/[,:;.'"()\[\]]/.test(m.expected||'')).length,n=r.mistakes.filter(m=>/\d/.test(m.expected||'')).length;const next=l?'legal-word muscle memory':p?'punctuation drill':n?'numbers & dates':r.wpm<70?'70–80 WPM dictation':'80–100 WPM transcription';return `<div class="card hc-feedback"><div class="section-title" style="margin-top:0;">Coach review</div><p class="goodline">What you did well → ${r.accuracy>=95?'Strong accuracy under pressure.':r.wpm>=80?'Good speed; keep protecting accuracy.':'You completed the exercise and generated useful training data.'}</p><p class="badline">What to improve → ${l} legal-word mistakes, ${p} punctuation mistakes, ${n} number/date mistakes, ${r.mistakes.length} total errors.</p><p class="nextline">Practice next → <b>${next}</b>.</p></div>`;}
 function hcSpeech(text,wpm){if(!('speechSynthesis'in window)){alert('Audio dictation is not supported in this browser.');return;}speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.rate=Math.max(.45,Math.min(1.5,wpm/120));u.lang='en-IN';speechSynthesis.speak(u);}
-function hcRenderCoachSummary(){const last=DB.sessions.filter(s=>s.highCourt).slice(-1)[0],el=document.getElementById('hcCoachBox');if(!last){el.innerHTML='<div class="tag">Personal stenographer coach</div><p>Start a High Court exercise. I will track WPM, accuracy, legal words, punctuation, numbers and weak keys.</p>';return;}const ww=worstMistakeWords(3).map(x=>x.word).join(', ')||'none yet';el.innerHTML=`<div class="tag">Personal stenographer coach</div><p>Your latest HC result: <b>${last.wpm} WPM</b> at <b>${last.accuracy}% accuracy</b>.</p><p>Weak words: <b>${ww}</b>. Next focus: <b>${last.accuracy<95?'accuracy + legal vocabulary':'speed + transcription endurance'}</b>.</p>`;}
-function renderHighCourt(){document.getElementById('hcModeGrid').innerHTML=HC_MODES.map(m=>`<div class="hc-mode-card" data-hcmode="${m.id}"><div class="m-ico">${m.ico}</div><div class="m-title">${m.title}</div><div class="m-desc">${m.desc}</div></div>`).join('');document.querySelectorAll('#hcModeGrid .hc-mode-card').forEach(c=>c.onclick=()=>hcOpenMode(c.dataset.hcmode));document.getElementById('hcSubpicker').innerHTML='';document.getElementById('hcStage').innerHTML='';hcRenderCoachSummary();}
-function hcOpenMode(mode){const w=document.getElementById('hcSubpicker');if(mode==='longPassage'){const sizes=[200,300,500,700,1000];w.innerHTML=`<div class="hc-controls"><span class="badge">Target length</span>${sizes.map(x=>`<button class="pill" data-words="${x}">${x} words</button>`).join('')}<button class="pill" data-words="custom">Custom</button></div>`;w.querySelectorAll('[data-words]').forEach(b=>b.onclick=()=>{let n=b.dataset.words;if(n==='custom'){n=prompt('Target word count:','450');if(!n||+n<=0)return;}hcStartLongPassage(+n);});}else if(mode==='dictation'||mode==='transcription'){w.innerHTML=`<div class="hc-controls"><span class="badge">Speed</span>${[60,70,80,90,100,120].map(x=>`<button class="pill" data-wpm="${x}">${x} WPM</button>`).join('')}</div>`;w.querySelectorAll('[data-wpm]').forEach(b=>b.onclick=()=>hcStartAudio(mode,+b.dataset.wpm));}else if(mode==='muscle'){const target=worstMistakeWords(5)[0]?.word||hcPick(HC_LEGAL_WORDS);w.innerHTML=`<div class="hc-controls"><span class="badge">Target</span><span class="chip bad">${target}</span><button class="btn" id="hcMuscleStart">Start adaptive memory</button></div>`;document.getElementById('hcMuscleStart').onclick=()=>hcStartMuscle(target);}else{w.innerHTML=`<div class="hc-controls"><button class="btn" id="hcStartSimple">Start ${HC_MODES.find(x=>x.id===mode).title}</button></div>`;document.getElementById('hcStartSimple').onclick=()=>hcLaunch(mode,mode==='exam'?{timeLimit:600}:{});}}
+function hcRenderCoachSummary(){const last=curSessions().filter(s=>s.highCourt).slice(-1)[0],el=document.getElementById('hcCoachBox');if(!last){el.innerHTML='<div class="tag">Personal stenographer coach</div><p>Start a High Court exercise. I will track WPM, accuracy, legal words, punctuation, numbers and weak keys.</p>';return;}const ww=worstMistakeWords(3).map(x=>escapeHtml(x.word)).join(', ')||'none yet';el.innerHTML=`<div class="tag">Personal stenographer coach</div><p>Your latest HC result: <b>${last.wpm} WPM</b> at <b>${last.accuracy}% accuracy</b>.</p><p>Weak words: <b>${ww}</b>. Next focus: <b>${last.accuracy<95?'accuracy + legal vocabulary':'speed + transcription endurance'}</b>.</p>`;}
+function renderHighCourt(){
+  // Returning to the mode grid removes the audio controls from the DOM, but
+  // that alone doesn't stop the Web Speech API from continuing to speak in
+  // the background — stop it explicitly (spec §6). No-op if nothing is
+  // currently speaking.
+  if('speechSynthesis' in window) speechSynthesis.cancel();
+  const isHi = DB.settings.lang==='hi';
+  const list = isHi ? HC_MODES_HI : HC_MODES;
+  document.getElementById('hcModeGrid').innerHTML=list.map(m=>`<div class="hc-mode-card" data-hcmode="${m.id}"><div class="m-ico">${m.ico}</div><div class="m-title">${m.title}</div><div class="m-desc">${m.desc}</div></div>`).join('');
+  document.querySelectorAll('#hcModeGrid .hc-mode-card').forEach(c=>c.onclick=()=>hcOpenMode(c.dataset.hcmode));
+  document.getElementById('hcSubpicker').innerHTML='';document.getElementById('hcStage').innerHTML='';hcRenderCoachSummary();
+}
+function hcOpenMode(mode){
+  const w=document.getElementById('hcSubpicker');
+  const isHi = DB.settings.lang==='hi';
+  if(mode==='longPassage'){
+    const sizes=[200,300,500,700,1000];
+    w.innerHTML=`<div class="hc-controls"><span class="badge">${isHi?'लक्ष्य लंबाई':'Target length'}</span>${sizes.map(x=>`<button class="pill" data-words="${x}">${x} ${isHi?'शब्द':'words'}</button>`).join('')}<button class="pill" data-words="custom">${isHi?'कस्टम':'Custom'}</button></div>`;
+    w.querySelectorAll('[data-words]').forEach(b=>b.onclick=()=>{let n=b.dataset.words;if(n==='custom'){n=prompt(isHi?'लक्ष्य शब्द संख्या:':'Target word count:','450');if(!n||+n<=0)return;}hcStartLongPassage(+n);});
+  } else if(mode==='dictation'||mode==='transcription'){
+    w.innerHTML=`<div class="hc-controls"><span class="badge">Speed</span>${[60,70,80,90,100,120].map(x=>`<button class="pill" data-wpm="${x}">${x} WPM</button>`).join('')}</div>`;
+    w.querySelectorAll('[data-wpm]').forEach(b=>b.onclick=()=>hcStartAudio(mode,+b.dataset.wpm));
+  } else if(mode==='muscle'){
+    const target=worstMistakeWords(5)[0]?.word||(isHi?hcPick(HI_LEGAL_WORDS):hcPick(HC_LEGAL_WORDS));
+    w.innerHTML=`<div class="hc-controls"><span class="badge">${isHi?'लक्ष्य':'Target'}</span><span class="chip bad ${isHi?'kruti-text':''}">${target}</span><button class="btn" id="hcMuscleStart">${isHi?'अनुकूलित स्मृति अभ्यास शुरू करें':'Start adaptive memory'}</button></div>`;
+    document.getElementById('hcMuscleStart').onclick=()=>hcStartMuscle(target);
+  } else {
+    const title = list_title(mode, isHi);
+    w.innerHTML=`<div class="hc-controls"><button class="btn" id="hcStartSimple">${isHi?'शुरू करें':'Start'} ${title}</button></div>`;
+    document.getElementById('hcStartSimple').onclick=()=>hcLaunch(mode,mode==='exam'?{timeLimit:600}:{});
+  }
+}
+function list_title(mode, isHi){
+  const list = isHi ? HC_MODES_HI : HC_MODES;
+  const found = list.find(x=>x.id===mode);
+  return found ? found.title : mode;
+}
 function hcLaunch(mode,opts={}){const st=document.getElementById('hcStage'),gen=()=>hcNewContent(mode);const f=gen();renderStage(st,f.text,f.mode,Object.assign({contentGenerator:gen,autoAdvance:false},opts));st.scrollIntoView({behavior:'smooth',block:'nearest'});}
-function hcStartLongPassage(words){const st=document.getElementById('hcStage'),gen=()=>({text:hcLongPassage(words),mode:'HC · long passage · '+words+'w'});const f=gen();renderStage(st,f.text,f.mode,{contentGenerator:gen,autoAdvance:false});st.scrollIntoView({behavior:'smooth',block:'nearest'});}
-function hcStartMuscle(word){const phrase=hcPick(HC_PHRASES),sentence=`The Court has ${word} to consider the matter.`,stages=[`${word} ${word} ${word} ${word}`,`${word} ${word} ${phrase}`,sentence,`${word} ${phrase}`];let i=0;const gen=()=>({text:stages[Math.min(i++,stages.length-1)],mode:'HC · muscle memory'});hcLaunchCustom(gen);document.getElementById('hcStage').insertAdjacentHTML('afterbegin','<div class="hc-brief">Adaptive path: Key → Pattern → Word → Legal Phrase → Sentence → Hidden Recall.</div>');}
+function hcStartLongPassage(words){const isHi=DB.settings.lang==='hi';const st=document.getElementById('hcStage'),gen=()=>({text:isHi?hcLongPassageHi(words):hcLongPassage(words),mode:(isHi?'न्यायालय · लंबा परिच्छेद · ':'HC · long passage · ')+words+(isHi?' शब्द':'w')});const f=gen();renderStage(st,f.text,f.mode,{contentGenerator:gen,autoAdvance:false});st.scrollIntoView({behavior:'smooth',block:'nearest'});}
+function hcStartMuscle(word){
+  const isHi = DB.settings.lang==='hi';
+  if(isHi){
+    const phrase=shuffle(HI_PHRASES)[0];
+    const stages=[hi_u2k(`${word} ${word} ${word} ${word}`), hi_u2k(`${word} ${word} ${phrase}`), hi_u2k(phrase), hi_u2k(`${word} ${phrase}`)];
+    let i=0; const gen=()=>({text: stages[Math.min(i++,stages.length-1)], mode:'न्यायालय · स्मृति अभ्यास'});
+    hcLaunchCustom(gen);
+    document.getElementById('hcStage').insertAdjacentHTML('afterbegin','<div class="hc-brief">अनुकूलित मार्ग: कुंजी → शब्द → कानूनी वाक्यांश → वाक्य → छिपा हुआ स्मरण।</div>');
+    return;
+  }
+  const phrase=hcPick(HC_PHRASES),sentence=`The Court has ${word} to consider the matter.`,stages=[`${word} ${word} ${word} ${word}`,`${word} ${word} ${phrase}`,sentence,`${word} ${phrase}`];let i=0;const gen=()=>({text:stages[Math.min(i++,stages.length-1)],mode:'HC · muscle memory'});hcLaunchCustom(gen);document.getElementById('hcStage').insertAdjacentHTML('afterbegin','<div class="hc-brief">Adaptive path: Key → Pattern → Word → Legal Phrase → Sentence → Hidden Recall.</div>');
+}
 function hcLaunchCustom(gen){const st=document.getElementById('hcStage'),f=gen();renderStage(st,f.text,f.mode,{contentGenerator:gen,autoAdvance:false});}
 function hcStartAudio(mode,wpm){const st=document.getElementById('hcStage'),c=hcNewContent('legalTyping');st.innerHTML=`<div class="card"><div class="section-title" style="margin-top:0;">${mode==='dictation'?'Dictation':'Transcription'} · ${wpm} WPM</div><div class="hc-brief">Press Play to listen. The text remains hidden while you type.</div><div class="hc-controls"><button class="btn" id="hcPlay">▶ Play dictation</button><button class="btn ghost" id="hcReplay">↻ Replay</button><button class="btn ghost" id="hcShow">Show text</button></div><div class="hc-audio-text" id="hcText" style="display:none;">${c.text}</div></div><div id="hcAudioStage"></div>`;document.getElementById('hcPlay').onclick=()=>{hcSpeech(c.text,wpm);hcAudioStage();};document.getElementById('hcReplay').onclick=()=>hcSpeech(c.text,wpm);document.getElementById('hcShow').onclick=()=>document.getElementById('hcText').style.display='block';function hcAudioStage(){renderStage(document.getElementById('hcAudioStage'),c.text,`HC · ${mode} · ${wpm} WPM`,{hidePrompt:true,autoAdvance:false});}}
 /* =========================================================================
@@ -3346,9 +4157,22 @@ function buildTestText(targetChars){
   }
   return text;
 }
+function buildTestTextHi(targetChars){
+  let text = '';
+  let guard = 0;
+  while(text.length < targetChars && guard < 60){
+    guard++;
+    const p = hi_pickNextParagraph();
+    text += (text ? ' ' : '') + p.text;
+  }
+  return hi_u2k(text);
+}
 function startWpmTest(duration){
+  const isHi = DB.settings.lang==='hi';
   const container = document.getElementById('wpmStage');
-  const gen = ()=> ({text: buildTestText(duration*12), mode:'wpm test'});
+  const gen = ()=> isHi
+    ? ({text: buildTestTextHi(duration*8), mode:'हिंदी · WPM टेस्ट'})
+    : ({text: buildTestText(duration*12), mode:'wpm test'});
   const first = gen();
   renderStage(container, first.text, first.mode, {timeLimit: duration, contentGenerator: gen});
   container.scrollIntoView({behavior:'smooth', block:'nearest'});
@@ -3381,12 +4205,66 @@ function initSettingsUI(){
   document.getElementById('sel-goal').value = DB.settings.dailyGoal;
   document.getElementById('sel-goal').addEventListener('change', async (e)=>{ DB.settings.dailyGoal = +e.target.value; await save('settings'); });
   document.getElementById('resetBtn').addEventListener('click', async ()=>{
-    if(!confirm('This clears all sessions, mistakes, XP, and settings. Continue?')) return;
+    // Two genuinely different behaviors depending on whether progress lives
+    // in the cloud or only on this device (spec §14) — clearing local
+    // storage alone would do nothing for a logged-in user's real data.
+    if(currentUser){
+      if(!confirm(`This PERMANENTLY deletes ALL of ${currentUser.email}'s cloud progress — every session, mistake record, and custom drill. This cannot be undone. Continue?`)) return;
+      const btn = document.getElementById('resetBtn');
+      // Capture which account this reset is FOR, before any await — if the
+      // user somehow switches accounts mid-reset, the deletes already sent
+      // are scoped to `uid` (correct, unaffected either way), but we must not
+      // reload/re-render as if it were the account that's active by the time
+      // this finishes.
+      const uid = currentUser.id;
+      const stillCurrent = ()=> currentUser && currentUser.id === uid;
+      btn.disabled = true; btn.textContent = 'Deleting…';
+      // Run sequentially (not Promise.all) and record each table's own
+      // outcome — this can't be a true single-transaction delete over plain
+      // REST calls, but running them one at a time and reporting exactly
+      // which of the three succeeded is "as atomic as practical" here, and
+      // means the final message is always accurate instead of assuming
+      // all-or-nothing.
+      const steps = [
+        { label: 'mistakes',      run: ()=> supabaseClient.from(MISTAKES_TABLE).delete().eq('user_id', uid) },
+        { label: 'custom drills', run: ()=> supabaseClient.from(DRILLS_TABLE).delete().eq('user_id', uid) },
+        { label: 'sessions',      run: ()=> supabaseClient.from(CLOUD_TABLE).delete().eq('user_id', uid) }
+      ];
+      const failed = [];
+      for(const step of steps){
+        try{
+          const { error } = await step.run();
+          if(error) throw error;
+        }catch(e){
+          console.error(`Cloud reset: deleting ${step.label} failed:`, e);
+          failed.push(step.label);
+        }
+      }
+      if(!stillCurrent()){
+        btn.disabled = false; btn.textContent = 'Reset';
+        return; // a different account is active now — its screen is untouched by this
+      }
+      // Always reload from the cloud afterward, whether this succeeded fully,
+      // partially, or not at all — the UI must reflect what's ACTUALLY left
+      // in the account, never the old pre-reset numbers.
+      try{ await loadCloudSessionsForCurrentUser(); }
+      catch(e){ console.error('Reload after reset failed:', e); }
+      if(failed.length === 0){
+        alert('Your account progress has been permanently deleted.');
+      } else if(failed.length === steps.length){
+        alert("Couldn't delete your cloud data — check your connection and try again. Nothing was changed.");
+      } else {
+        alert(`Partially deleted: couldn't remove your ${failed.join(' and ')} data (check your connection). The rest was deleted. Click Reset again to retry the part that failed — it's safe to repeat.`);
+      }
+      btn.disabled = false; btn.textContent = 'Reset';
+      return;
+    }
+    if(!confirm('This clears all sessions, mistakes, XP, and settings on this device. Continue?')) return;
     for(const k of STORE_KEYS){ try{ await window.storage.delete(k, false); }catch(e){} }
-    DB = { sessions: [], mistakeWords: {}, weakKeys: {}, settings: Object.assign({}, DEFAULT_SETTINGS), xp: 0, streakData: {count:0,best:0,last:null}, achievementsUnlocked: [],
+    DB = { sessions: [], mistakeWords: {}, weakKeys: {}, mistakeWordsHi: {}, weakKeysHi: {}, settings: Object.assign({}, DEFAULT_SETTINGS), xp: 0, streakData: {count:0,best:0,last:null}, achievementsUnlocked: [],
       recentContent: { topic:[], pattern:[], symbol:[], paragraphSigs:[], muscleRound:{}, sentence:[], punctuation:[] }, wordHistory: {}, customDrills: [], paragraphHistory: {}, seenContent: {} };
-    renderDashboard(); initSettingsUI();
-    alert('All data cleared.');
+    renderDashboard(); initSettingsUI(); renderAllProgressUI(); renderSavedDrills();
+    alert('All local data cleared.');
   });
 }
 
@@ -3395,6 +4273,23 @@ function initSettingsUI(){
    ========================================================================= */
 (async function boot(){
   await loadAll();
+  applyLangTheme();
+  document.querySelectorAll('#langSwitch button').forEach(b=>{
+    b.addEventListener('click', async ()=>{
+      if(DB.settings.lang === b.dataset.lang) return;
+      DB.settings.lang = b.dataset.lang;
+      await save('settings');
+      applyLangTheme();
+      let activePage = document.querySelector('#nav button.active')?.dataset.page || 'dashboard';
+      if(b.dataset.lang==='hi' && (activePage==='drillbuilder' || activePage==='workout')) activePage='dashboard';
+      showPage(activePage);
+    });
+  });
+  document.getElementById('themeToggleBtn').addEventListener('click', async ()=>{
+    DB.settings.theme = (DB.settings.theme==='dark') ? 'light' : 'dark';
+    await save('settings');
+    applyLangTheme();
+  });
   initSettingsUI();
   renderModeGrid();
   renderDashboard();
