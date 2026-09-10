@@ -226,16 +226,13 @@ td.mono, th.num{font-family:var(--mono);}
   color:var(--text-faint);user-select:none;word-wrap:break-word;
   overflow:hidden;position:relative;scroll-behavior:smooth;
 }
-.type-text span{border-radius:3px;padding:0 1px;transition:color .08s ease;}
+.type-text span{border-radius:3px;padding:0 1px;}
 .type-text span.correct{color:var(--good);}
 .type-text span.incorrect{color:var(--bad);background:var(--bad-dim);}
 .type-text span.current{
-  color:var(--bg);background:linear-gradient(120deg, var(--accent), var(--accent2));
-  box-shadow:0 0 0 3px var(--accent-glow), 0 3px 10px rgba(45,212,191,.45);
-  animation:keypress .35s ease;
+  color:var(--bg);background:var(--accent);
 }
-@keyframes keypress{0%{transform:scale(.85);}60%{transform:scale(1.08);}100%{transform:scale(1);}}
-.type-text span.space-cur{border-bottom:2px solid var(--accent);}
+.type-text span.space-cur{box-shadow:inset 0 -2px 0 0 var(--accent);}
 .type-fade{
   position:absolute;left:30px;right:30px;height:38px;pointer-events:none;
   background:linear-gradient(to bottom, transparent, var(--surface));
@@ -765,8 +762,8 @@ canvas{max-width:100%;}
    this file or any other browser-side code; it bypasses RLS entirely and
    would let anyone who views your page source read/write every user's data.
    ========================================================================= */
-const SUPABASE_URL = 'https://wrciexrvqrgckaqlgwga.supabase.co';
-const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_CPQrm079aIgM1u0dKUyo_g_oNd7B0qE';
+const SUPABASE_URL = 'PASTE_PROJECT_URL_HERE';
+const SUPABASE_PUBLISHABLE_KEY = 'PASTE_PUBLISHABLE_KEY_HERE';
 const supabaseClient = window.supabase.createClient(
   SUPABASE_URL,
   SUPABASE_PUBLISHABLE_KEY
@@ -1494,7 +1491,7 @@ if(!window.storage){
    STORAGE LAYER
    ========================================================================= */
 const STORE_KEYS = ['sessions','mistakeWords','weakKeys','settings','xp','streakData','achievementsUnlocked','recentContent','wordHistory','customDrills','paragraphHistory','seenContent','mistakeWordsHi','weakKeysHi'];
-const DEFAULT_SETTINGS = {sound:true, keyboard:true, caret:'block', fontSize:21, dailyGoal:10,
+const DEFAULT_SETTINGS = {keyboard:true, caret:'block', fontSize:21, dailyGoal:10,
   fontFamily:'mono', lineHeight:1.9, letterSpacing:'.01em', textWidth:820, lang:'en', theme:'dark'};
 
 /* =========================================================================
@@ -2609,63 +2606,14 @@ function highlightTarget(char){
   if(el) el.classList.add('target');
   lastTargetEl = el || null;
 }
-function flashKey(char, correct){
-  const lower = char===' ' ? ' ' : char.toLowerCase();
-  const el = keyboardEls[lower] || keyboardEls[char];
-  if(!el) return;
-  el.classList.add(correct?'correct-flash':'incorrect-flash');
-  setTimeout(()=> el.classList.remove(correct?'correct-flash':'incorrect-flash'), 150);
-}
+// flashKey() (per-key virtual-keyboard flash + its setTimeout-based cleanup) was removed
+// from the hot path: it added a class-toggle plus a scheduled timer on every single
+// keystroke purely for decoration. highlightTarget() below still shows which key to press
+// next — that's a persistent, O(1)-per-keystroke indicator (not a per-key animation) and
+// stays, since it's actually useful, not decorative.
 
-/* =========================================================================
-   SOUND — synthesized mechanical-keyboard click (not a game "beep")
-   ========================================================================= */
-let audioCtx = null;
-let clickNoiseBuffer = null;
-function getClickNoiseBuffer(ctx){
-  if(clickNoiseBuffer) return clickNoiseBuffer;
-  const len = Math.floor(ctx.sampleRate * 0.05); // 50ms of white noise, reused every click
-  const buf = ctx.createBuffer(1, len, ctx.sampleRate);
-  const data = buf.getChannelData(0);
-  for(let i=0;i<len;i++) data[i] = Math.random()*2 - 1;
-  clickNoiseBuffer = buf;
-  return buf;
-}
-function keySound(correct){
-  if(!DB.settings.sound) return;
-  try{
-    audioCtx = audioCtx || new (window.AudioContext||window.webkitAudioContext)();
-    const ctx = audioCtx;
-    const now = ctx.currentTime;
-
-    // 1) the "click": a short burst of filtered noise — this transient, not a pure tone,
-    //    is what actually reads as a mechanical keyswitch to the ear.
-    const noise = ctx.createBufferSource();
-    noise.buffer = getClickNoiseBuffer(ctx);
-    const bandpass = ctx.createBiquadFilter();
-    bandpass.type = 'bandpass';
-    bandpass.frequency.value = (correct ? 2800 : 1500) + Math.random()*700; // tiny per-key variation, avoids a robotic repeat
-    bandpass.Q.value = 1.1;
-    const clickGain = ctx.createGain();
-    clickGain.gain.setValueAtTime(correct ? 0.17 : 0.14, now);
-    clickGain.gain.exponentialRampToValueAtTime(0.0008, now + 0.045);
-    noise.connect(bandpass); bandpass.connect(clickGain); clickGain.connect(ctx.destination);
-    noise.start(now); noise.stop(now + 0.05);
-
-    // 2) the "thock": a brief low thump underneath the click, giving the switch body/weight
-    //    a real keyboard has — a pure sine beep alone sounds like a game, not a keyboard.
-    const thump = ctx.createOscillator();
-    thump.type = 'sine';
-    const baseFreq = correct ? 150 : 100;
-    thump.frequency.setValueAtTime(baseFreq, now);
-    thump.frequency.exponentialRampToValueAtTime(baseFreq*0.6, now + 0.05);
-    const thumpGain = ctx.createGain();
-    thumpGain.gain.setValueAtTime(correct ? 0.05 : 0.08, now);
-    thumpGain.gain.exponentialRampToValueAtTime(0.0006, now + 0.06);
-    thump.connect(thumpGain); thumpGain.connect(ctx.destination);
-    thump.start(now); thump.stop(now + 0.07);
-  }catch(e){}
-}
+// keySound() (the synthesized keyboard-click on each keystroke) was removed by request —
+// typing no longer plays any audio.
 
 /* =========================================================================
    TYPING ENGINE
@@ -2741,8 +2689,6 @@ class TypingEngine{
       this.mistakes.push({word, expected, typed:pressed, index:posBeforePress});
       this.wordMistakeSet.add(word.toLowerCase());
     }
-    flashKey(pressed, correct);
-    keySound(correct);
     if(!correct) this.onMistake();
     this.emitUpdate();
     return correct;
@@ -2863,6 +2809,13 @@ function renderStage(container, text, mode, opts){
   // paragraph DOM rebuild per keypress — critical for long passages at high WPM). ----
   let spans = [];
   let typedLen = 0;
+  // Line-height in px, used by autoScrollToCurrent() on every keystroke. Measured
+  // ONCE here via getComputedStyle (authoritative — accounts for font fallback,
+  // Hindi's larger Kruti Dev size bump, browser metrics) rather than re-measuring
+  // on every single keypress, which was a real forced-synchronous-layout cost at
+  // high WPM. Font size/line-height are fixed for the lifetime of this stage, so
+  // caching it once is exactly as accurate and just skips the repeated work.
+  let cachedLineHeightPx = null;
   function buildTextSpans(){
     const frag = document.createDocumentFragment();
     spans = new Array(text.length);
@@ -2901,13 +2854,14 @@ function renderStage(container, text, mode, opts){
     typedLen = newLen;
     autoScrollToCurrent(curEl);
   }
-  function autoScrollToCurrent(curEl){
+  let scrollRafHandle = null;
+  let pendingScrollEl = null;
+  function performScroll(cur){
     // teleprompter effect: once the line being typed nears the bottom of the visible
     // window (or the user backspaces back up above it), scroll the paragraph by whole
     // lines so the current line always stays comfortably in view — no manual scrolling.
-    const cur = curEl || spans[spans.length-1];
     if(!cur) return;
-    const lineHeightPx = parseFloat(getComputedStyle(typeTextEl).lineHeight) || (DB.settings.fontSize*DB.settings.lineHeight);
+    const lineHeightPx = cachedLineHeightPx;
     const viewH = typeTextEl.clientHeight;
     const relTop = cur.offsetTop - typeTextEl.scrollTop;
     if(relTop > viewH - lineHeightPx*1.4){
@@ -2916,8 +2870,27 @@ function renderStage(container, text, mode, opts){
       typeTextEl.scrollTop = Math.max(0, cur.offsetTop - lineHeightPx);
     }
   }
+  function autoScrollToCurrent(curEl){
+    // Deferred to the next animation frame rather than run synchronously inside every
+    // keystroke: the geometry reads here (offsetTop/clientHeight/scrollTop) can force the
+    // browser to resolve any pending layout work before returning a value. Coalescing
+    // through rAF means that if several keystrokes land within the same ~16ms frame (only
+    // realistically possible at extreme sustained WPM or key-repeat bursts), this work
+    // still runs at most once per frame instead of once per keystroke, keeping it off the
+    // synchronous per-key path entirely.
+    pendingScrollEl = curEl || spans[spans.length-1];
+    if(scrollRafHandle) return;
+    scrollRafHandle = requestAnimationFrame(()=>{
+      scrollRafHandle = null;
+      performScroll(pendingScrollEl);
+    });
+  }
   if(opts.hidePrompt) typeTextEl.innerHTML='<span style="color:var(--text-dim);">Audio dictation active — type what you hear.</span>';
   else buildTextSpans();
+  // Measured once per stage, right after the panel's real font-size/line-height
+  // are in the DOM — see the declaration above for why this replaces a
+  // per-keystroke getComputedStyle() call.
+  cachedLineHeightPx = parseFloat(getComputedStyle(typeTextEl).lineHeight) || (DB.settings.fontSize*DB.settings.lineHeight);
 
   const engine = new TypingEngine(text, {
     timeLimit: opts.timeLimit,
@@ -2926,10 +2899,11 @@ function renderStage(container, text, mode, opts){
       liveAccEl.textContent = s.accuracy+'%';
       liveErrsEl.textContent = engine.incorrectKeystrokes;
     },
-    onMistake: ()=>{
-      panel.classList.add('shake','mistake-flash');
-      setTimeout(()=> panel.classList.remove('shake','mistake-flash'), 220);
-    },
+    // onMistake intentionally omitted: this used to trigger a shake + red-flash animation
+    // on the panel via classList + a 220ms setTimeout on every single mistake. Removed from
+    // the hot path per the performance pass — TypingEngine still fully tracks mistake DATA
+    // (this.mistakes / wordMistakeSet) regardless; only the decorative per-mistake animation
+    // is gone. Falls back to TypingEngine's built-in no-op default.
     onComplete: (result)=>{
       stopTicker();
       input.disabled = true;
@@ -2974,14 +2948,19 @@ function renderStage(container, text, mode, opts){
     }, 250);
   }
 
+  function cancelPendingScroll(){
+    if(scrollRafHandle){ cancelAnimationFrame(scrollRafHandle); scrollRafHandle = null; }
+  }
   function doRestart(){
     stopTicker();
+    cancelPendingScroll();
     engine.stop(); // disarm the old engine's internal auto-finish timer before replacing it
     renderStage(container, text, mode, opts);
   }
   function doSkip(){
     if(!opts.contentGenerator) return;
     stopTicker();
+    cancelPendingScroll();
     engine.stop(); // a skipped timed test must never later record itself as completed
     const next = opts.contentGenerator(); // marks the current passage SEEN and picks a fresh one — spec §3/§9
     renderStage(container, next.text, next.mode || mode, opts);
@@ -3001,7 +2980,12 @@ function renderStage(container, text, mode, opts){
     if(e.key==='Escape'){ e.preventDefault(); togglePause(); return; }
     if(engine.paused){ e.preventDefault(); return; } // input stays focused (so Esc still works) but typing is blocked
     if(e.key==='Backspace'){ engine.handleBackspace(); return; }
-    if(e.key.length===1){
+    // Guard against browser/OS shortcuts riding on a single-character key (Ctrl+A select-all,
+    // Ctrl+C/V/X copy-paste-cut, Cmd+A on Mac, etc.) — without this, e.g. Ctrl+A was being
+    // misread as the user actually typing the letter "a", corrupting WPM/accuracy/mistakes.
+    // e.repeat guards against an OS-level held-key auto-repeat firing dozens of synthetic
+    // keydowns for what was really one keypress.
+    if(e.key.length===1 && !e.ctrlKey && !e.metaKey && !e.altKey && !e.repeat){
       if(engine.startTime===null) startTicker();
       const posBefore = input.value.length;
       if(posBefore < text.length){ engine.handleChar(e.key, posBefore); }
