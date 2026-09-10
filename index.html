@@ -456,14 +456,14 @@ canvas{max-width:100%;}
     <div class="streak-chip" id="streakChip">🔥 <b>0</b> day streak</div>
     <nav class="nav" id="nav">
       <button data-page="dashboard" class="active"><span class="ico">01</span><span data-t="nav.dashboard">Dashboard</span></button>
-      <button data-page="practice"><span class="ico">02</span><span data-t="nav.practice">Practice</span></button>
-      <button data-page="drillbuilder" class="en-only"><span class="ico">DB</span><span data-t="nav.drillbuilder">Drill Builder</span></button>
-      <button data-page="highcourt"><span class="ico">HC</span><span data-t="nav.highcourt">High Court Coach</span></button>
-      <button data-page="wpmtest"><span class="ico">03</span><span data-t="nav.wpmtest">WPM Test</span></button>
+      <button data-page="wpmtest"><span class="ico">02</span><span data-t="nav.wpmtest">WPM Test</span></button>
+      <button data-page="practice"><span class="ico">03</span><span data-t="nav.practice">Practice</span></button>
       <button data-page="mistakes"><span class="ico">04</span><span data-t="nav.mistakes">Mistake Bank</span></button>
       <button data-page="progress"><span class="ico">05</span><span data-t="nav.progress">Progress</span></button>
-      <button data-page="workout" class="en-only"><span class="ico">06</span><span data-t="nav.workout">Daily Workout</span></button>
-      <button data-page="achievements"><span class="ico">07</span><span data-t="nav.achievements">Achievements</span></button>
+      <button data-page="achievements"><span class="ico">06</span><span data-t="nav.achievements">Achievements</span></button>
+      <button data-page="workout" class="en-only"><span class="ico">07</span><span data-t="nav.workout">Daily Workout</span></button>
+      <button data-page="drillbuilder" class="en-only"><span class="ico">DB</span><span data-t="nav.drillbuilder">Drill Builder</span></button>
+      <button data-page="highcourt"><span class="ico">HC</span><span data-t="nav.highcourt">High Court Coach</span></button>
       <div class="nav-sep"></div>
       <button data-page="settings"><span class="ico">·</span><span data-t="nav.settings">Settings</span></button>
     </nav>
@@ -2927,6 +2927,19 @@ function renderStage(container, text, mode, opts){
     }
   });
   container._activeEngine = engine; // registered so the next renderStage() on this container can safely tear it down
+  // Pages in this app are hidden with a CSS class, not removed from the DOM (see showPage()),
+  // so the ticker's own "element disconnected" self-stop never fires just from navigating to
+  // another page — it would otherwise keep polling performance.now() every 250ms in the
+  // background indefinitely (spec §10/§16: no heavy work off the typing path, no leaked
+  // timers). Exposing pause here lets showPage() freeze the session the instant the user
+  // leaves this page; the session itself is preserved (Esc already resumes it the same way).
+  container._pauseActive = ()=>{
+    if(engine.startTime!==null && !engine.finished && !engine.paused){
+      engine.pause();
+      stopTicker();
+      panel.classList.add('paused');
+    }
+  };
 
   let tickHandle = null;
   function stopTicker(){
@@ -3267,6 +3280,12 @@ function showPage(name){
   // background indefinitely after the user has navigated away (spec §6).
   // A no-op if nothing is currently speaking.
   if('speechSynthesis' in window) speechSynthesis.cancel();
+  // Freeze any typing session still running on the page we're leaving — these stage
+  // containers stay in the DOM (just hidden) when a page is switched, so their tickers
+  // would otherwise keep running invisibly in the background (spec §10/§16).
+  if(name!=='practice'){ const c=document.getElementById('practiceStage'); if(c && c._pauseActive) c._pauseActive(); }
+  if(name!=='wpmtest'){ const c=document.getElementById('wpmStage'); if(c && c._pauseActive) c._pauseActive(); }
+  if(name!=='highcourt'){ const c=document.getElementById('hcStage'); if(c && c._pauseActive) c._pauseActive(); }
   pages.forEach(p=>{
     document.getElementById('page-'+p).classList.toggle('active', p===name);
   });
@@ -3469,9 +3488,9 @@ function renderAchievements(){
 const MODES = [
   {id:'muscle', title:'Muscle Memory', desc:'Finger & key isolation drills, auto-targeted at your weakest finger.', ico:'01'},
   {id:'mistakes', title:'Mistake Training', desc:'Drill the exact words you keep getting wrong.', ico:'02'},
-  {id:'words', title:'Difficult Words', desc:'A curated library of hard, high-value vocabulary.', ico:'03'},
-  {id:'patterns', title:'Pattern Training', desc:'Common letter combinations like th, tion, ough.', ico:'04'},
-  {id:'paragraph', title:'Paragraph Mode', desc:'Full paragraphs across four lengths and four difficulty levels.', ico:'05'},
+  {id:'paragraph', title:'Paragraph Mode', desc:'Full paragraphs across four lengths and four difficulty levels.', ico:'03'},
+  {id:'words', title:'Difficult Words', desc:'A curated library of hard, high-value vocabulary.', ico:'04'},
+  {id:'patterns', title:'Pattern Training', desc:'Common letter combinations like th, tion, ough.', ico:'05'},
   {id:'symbols', title:'Symbols', desc:'Punctuation, brackets, and programming symbols.', ico:'06'},
   {id:'numbers', title:'Numbers', desc:'Phone numbers, dates, prices, and measurements.', ico:'07'},
   {id:'punctuation', title:'Punctuation', desc:'Dedicated comma, quote, dash and bracket training.', ico:'08'},
@@ -3480,10 +3499,10 @@ const MODES = [
 const HI_MODES = [
   {id:'hi_finger', title:'फिंगर अभ्यास', desc:'कुंजी-समूह अभ्यास — उंगली की स्थिति के अनुसार।', ico:'01'},
   {id:'hi_mistakes', title:'गलती अभ्यास', desc:'जिन शब्दों में आप बार-बार गलती करते हैं, उन्हीं का अभ्यास।', ico:'02'},
-  {id:'hi_words', title:'शब्द अभ्यास', desc:'सामान्य हिंदी शब्दों का अभ्यास।', ico:'03'},
-  {id:'hi_legalwords', title:'कानूनी शब्द', desc:'न्यायालय में प्रयुक्त होने वाली शब्दावली।', ico:'04'},
-  {id:'hi_pattern', title:'मात्रा / पैटर्न अभ्यास', desc:'संयुक्ताक्षर, मात्राएँ और सामान्य अक्षर-संयोजन।', ico:'05'},
-  {id:'hi_paragraph', title:'परिच्छेद अभ्यास', desc:'पूर्ण हिंदी परिच्छेद — विभिन्न श्रेणियों और लंबाई में।', ico:'06'},
+  {id:'hi_paragraph', title:'परिच्छेद अभ्यास', desc:'पूर्ण हिंदी परिच्छेद — विभिन्न श्रेणियों और लंबाई में।', ico:'03'},
+  {id:'hi_words', title:'शब्द अभ्यास', desc:'सामान्य हिंदी शब्दों का अभ्यास।', ico:'04'},
+  {id:'hi_legalwords', title:'कानूनी शब्द', desc:'न्यायालय में प्रयुक्त होने वाली शब्दावली।', ico:'05'},
+  {id:'hi_pattern', title:'मात्रा / पैटर्न अभ्यास', desc:'संयुक्ताक्षर, मात्राएँ और सामान्य अक्षर-संयोजन।', ico:'06'},
   {id:'hi_sentence', title:'वाक्य अभ्यास', desc:'ताज़ा, कभी न दोहराए जाने वाले हिंदी वाक्य।', ico:'07'},
   {id:'hi_number', title:'संख्या / दिनांक', desc:'मामला संख्या, दिनांक, राशि — न्यायालय शैली में।', ico:'08'},
   {id:'hi_phrase', title:'न्यायालय वाक्यांश', desc:'याचिकाकर्ता, प्रतिवादी और औपचारिक न्यायालय भाषा।', ico:'09'},
